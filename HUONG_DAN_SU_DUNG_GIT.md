@@ -26,12 +26,27 @@ git pull origin main
 Sau khi chỉnh sửa xong code, quy trình để lưu và đẩy code lên dự án gồm 3 bước sau:
 
 ### Bước 1: Thêm các thay đổi (Add)
-Lệnh này giúp Git ghi nhận tất cả các thay đổi bạn đã tạo ra (bao gồm file tạo mới, chỉnh sửa, xóa):
 
+Bạn có **2 cách** để thêm file vào danh sách chờ commit:
+
+**Cách 1: Thêm toàn bộ file đã thay đổi** (dùng khi bạn sửa nhiều file và muốn commit hết):
 ```bash
 git add .
 ```
-*(Dấu `.` để thêm toàn bộ file. Nếu chỉ muốn đẩy một file cụ thể, bạn dùng `git add ten-file.js`)*.
+
+**Cách 2: Thêm từng file cụ thể** (dùng khi bạn chỉ muốn commit 1 vài file nhất định):
+```bash
+git add ten-file-1.java
+git add ten-file-2.java
+```
+
+> [!WARNING]
+> **Lưu ý quan trọng:** Khi dùng `git add .`, **tất cả** file đã thay đổi trong thư mục sẽ được thêm vào — kể cả những file bạn không có ý định commit (ví dụ: file database `.db`, file cấu hình `.vscode/`...). Nếu bạn chỉ muốn commit 1 file cụ thể thì hãy dùng **Cách 2**.
+
+**Mẹo:** Trước khi commit, luôn chạy `git status` để kiểm tra xem những file nào đang được đánh dấu (staged). Nếu thấy file không mong muốn, bạn có thể bỏ nó ra bằng lệnh:
+```bash
+git reset HEAD ten-file-khong-muon.db
+```
 
 ### Bước 2: Lưu các thay đổi kèm ghi chú (Commit)
 Bạn cần "đóng gói" các thay đổi đó và gán cho nó một lời nhắn ngắn gọn để mọi người (và chính bạn sau này) biết bạn vừa code gì:
