@@ -1,7 +1,7 @@
 package com.mycompany.quanlyquaninternet;
 
-import com.mycompany.quanlyquaninternet.controller.LoginController;
-import com.mycompany.quanlyquaninternet.view.LoginView;
+import com.mycompany.quanlyquaninternet.controller.DieuKhienDangNhap;
+import com.mycompany.quanlyquaninternet.view.GiaoDienDangNhap;
 import com.formdev.flatlaf.FlatDarkLaf;
 
 import javax.swing.*;
@@ -9,12 +9,12 @@ import java.awt.*;
 
 /**
  * Quản Lý Quán Internet - CyberNet
- * Main entry point
+ * Điểm bắt đầu chương trình (Phiên bản Việt hóa)
  */
 public class QuanLyQuanInternet {
 
     public static void main(String[] args) {
-        // Set FlatLaf Dark theme
+        // Thiết lập giao diện FlatLaf Dark
         try {
             FlatDarkLaf.setup();
             UIManager.put("Button.arc", 8);
@@ -27,7 +27,6 @@ public class QuanLyQuanInternet {
             UIManager.put("ScrollBar.width", 10);
             UIManager.put("TitlePane.unifiedBackground", true);
         } catch (Exception e) {
-            // Fallback to system look and feel
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception ex) {
@@ -35,11 +34,11 @@ public class QuanLyQuanInternet {
             }
         }
 
-        // Launch application
+        // Khởi chạy ứng dụng
         EventQueue.invokeLater(() -> {
-            LoginView loginView = new LoginView();
-            LoginController controller = new LoginController(loginView);
-            controller.showLoginView();
+            GiaoDienDangNhap giaoDienDangNhap = new GiaoDienDangNhap();
+            DieuKhienDangNhap dieuKhien = new DieuKhienDangNhap(giaoDienDangNhap);
+            dieuKhien.hienThiGiaoDien();
         });
     }
 }
