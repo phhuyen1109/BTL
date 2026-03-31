@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS customers (
     phone VARCHAR(20),
     balance DOUBLE DEFAULT 0,
     total_hours DOUBLE DEFAULT 0,
+    points INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -46,7 +47,20 @@ CREATE TABLE IF NOT EXISTS food_drinks (
     name VARCHAR(100) NOT NULL,
     price DOUBLE NOT NULL,
     category VARCHAR(50) DEFAULT 'Nước uống',
+    points_cost INT DEFAULT 0,
     available BOOLEAN DEFAULT TRUE
+);
+
+-- Bảng lịch sử đổi thưởng
+CREATE TABLE IF NOT EXISTS reward_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    food_drink_id INT NOT NULL,
+    food_drink_name VARCHAR(100),
+    points_used INT NOT NULL,
+    redeemed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (food_drink_id) REFERENCES food_drinks(id)
 );
 
 -- Bảng đơn hàng
@@ -123,15 +137,15 @@ INSERT INTO computers (name, type, price_per_hour, status, specs)
 SELECT 'Máy 20', 'VIP', 15000, 'Trống', 'Core i9-13900, 64GB RAM, RTX 4080' WHERE NOT EXISTS (SELECT 1 FROM computers WHERE name = 'Máy 20');
 
 -- Menu đồ ăn/uống mẫu
-INSERT INTO food_drinks (name, price, category, available) 
-SELECT 'Mì tôm', 15000, 'Đồ ăn', true WHERE NOT EXISTS (SELECT 1 FROM food_drinks WHERE name = 'Mì tôm');
-INSERT INTO food_drinks (name, price, category, available) 
-SELECT 'Coca-Cola', 12000, 'Nước uống', true WHERE NOT EXISTS (SELECT 1 FROM food_drinks WHERE name = 'Coca-Cola');
-INSERT INTO food_drinks (name, price, category, available) 
-SELECT 'Cơm rang', 30000, 'Đồ ăn', true WHERE NOT EXISTS (SELECT 1 FROM food_drinks WHERE name = 'Cơm rang');
+INSERT INTO food_drinks (name, price, category, points_cost, available) 
+SELECT 'Mì tôm', 15000, 'Đồ ăn', 2, true WHERE NOT EXISTS (SELECT 1 FROM food_drinks WHERE name = 'Mì tôm');
+INSERT INTO food_drinks (name, price, category, points_cost, available) 
+SELECT 'Coca-Cola', 12000, 'Nước uống', 1, true WHERE NOT EXISTS (SELECT 1 FROM food_drinks WHERE name = 'Coca-Cola');
+INSERT INTO food_drinks (name, price, category, points_cost, available) 
+SELECT 'Cơm rang', 30000, 'Đồ ăn', 3, true WHERE NOT EXISTS (SELECT 1 FROM food_drinks WHERE name = 'Cơm rang');
 
 -- Khách hàng mẫu
-INSERT INTO customers (name, phone, balance, total_hours) 
-SELECT 'Nguyễn Văn An', '0901234567', 200000, 15.5 WHERE NOT EXISTS (SELECT 1 FROM customers WHERE phone = '0901234567');
-INSERT INTO customers (name, phone, balance, total_hours) 
-SELECT 'Trần Thị Bình', '0912345678', 150000, 10.0 WHERE NOT EXISTS (SELECT 1 FROM customers WHERE phone = '0912345678');
+INSERT INTO customers (name, phone, balance, total_hours, points) 
+SELECT 'Nguyễn Văn An', '0901234567', 200000, 15.5, 15 WHERE NOT EXISTS (SELECT 1 FROM customers WHERE phone = '0901234567');
+INSERT INTO customers (name, phone, balance, total_hours, points) 
+SELECT 'Trần Thị Bình', '0912345678', 150000, 10.0, 10 WHERE NOT EXISTS (SELECT 1 FROM customers WHERE phone = '0912345678');

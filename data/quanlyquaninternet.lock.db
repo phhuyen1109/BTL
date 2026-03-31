@@ -1,6 +1,6 @@
 #FileLock
-#Mon Mar 30 22:03:10 ICT 2026
-hostName=HUYEN
-id=19d3efc6b9da7ad8ff249c76be1997c7eb4d307c76a
+#Tue Mar 31 12:38:29 ICT 2026
+server=192.168.56.1\:65058
+hostName=DUCPHAN
 method=file
-server=192.168.1.36\:58414
+id=19d426689905d9a0f9e799718baa309a5cfe0652be2

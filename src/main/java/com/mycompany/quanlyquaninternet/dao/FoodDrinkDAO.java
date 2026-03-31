@@ -112,6 +112,7 @@ public class FoodDrinkDAO {
         fd.setName(rs.getString("name"));
         fd.setPrice(rs.getDouble("price"));
         fd.setCategory(rs.getString("category"));
+        fd.setPointsCost(rs.getInt("points_cost"));
         fd.setAvailable(rs.getBoolean("available"));
         return fd;
     }

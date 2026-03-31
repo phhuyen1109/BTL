@@ -8,6 +8,7 @@ public class Customer {
     private String phone;
     private double balance;
     private double totalHours;
+    private int points;
     private Date createdAt;
 
     public Customer() {}
@@ -30,6 +31,8 @@ public class Customer {
     public void setBalance(double balance) { this.balance = balance; }
     public double getTotalHours() { return totalHours; }
     public void setTotalHours(double totalHours) { this.totalHours = totalHours; }
+    public int getPoints() { return points; }
+    public void setPoints(int points) { this.points = points; }
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 

@@ -55,12 +55,13 @@ public class CustomerDAO {
     }
 
     public boolean add(Customer customer) {
-        String sql = "INSERT INTO customers (name, phone, balance, total_hours) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO customers (name, phone, balance, total_hours, points) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, customer.getName());
             pstmt.setString(2, customer.getPhone());
             pstmt.setDouble(3, customer.getBalance());
             pstmt.setDouble(4, customer.getTotalHours());
+            pstmt.setInt(5, customer.getPoints());
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
                 ResultSet keys = pstmt.getGeneratedKeys();
@@ -76,13 +77,14 @@ public class CustomerDAO {
     }
 
     public boolean update(Customer customer) {
-        String sql = "UPDATE customers SET name=?, phone=?, balance=?, total_hours=? WHERE id=?";
+        String sql = "UPDATE customers SET name=?, phone=?, balance=?, total_hours=?, points=? WHERE id=?";
         try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
             pstmt.setString(1, customer.getName());
             pstmt.setString(2, customer.getPhone());
             pstmt.setDouble(3, customer.getBalance());
             pstmt.setDouble(4, customer.getTotalHours());
-            pstmt.setInt(5, customer.getId());
+            pstmt.setInt(5, customer.getPoints());
+            pstmt.setInt(6, customer.getId());
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -146,6 +148,57 @@ public class CustomerDAO {
         return false;
     }
 
+    /**
+     * Cộng điểm cho khách hàng
+     */
+    public boolean addPoints(int customerId, int points) {
+        String sql = "UPDATE customers SET points = points + ? WHERE id = ?";
+        try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+            pstmt.setInt(1, points);
+            pstmt.setInt(2, customerId);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Trừ điểm khi đổi thưởng
+     */
+    public boolean deductPoints(int customerId, int points) {
+        String sql = "UPDATE customers SET points = points - ? WHERE id = ? AND points >= ?";
+        try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+            pstmt.setInt(1, points);
+            pstmt.setInt(2, customerId);
+            pstmt.setInt(3, points);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Nạp tiền + tự động cộng giờ chơi + tích điểm
+     * Giá máy Thường = 10,000đ/giờ, 1 giờ = 1 điểm
+     */
+    public boolean topUpWithHoursAndPoints(int customerId, double amount) {
+        double hours = amount / 10000.0;
+        int points = (int) hours;
+        try {
+            topUp(customerId, amount);
+            addHours(customerId, hours);
+            if (points > 0) {
+                addPoints(customerId, points);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM customers";
         try (Statement stmt = getConnection().createStatement();
@@ -164,6 +217,7 @@ public class CustomerDAO {
         c.setPhone(rs.getString("phone"));
         c.setBalance(rs.getDouble("balance"));
         c.setTotalHours(rs.getDouble("total_hours"));
+        c.setPoints(rs.getInt("points"));
         c.setCreatedAt(rs.getTimestamp("created_at"));
         return c;
     }

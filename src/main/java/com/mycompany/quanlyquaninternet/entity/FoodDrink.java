@@ -5,6 +5,7 @@ public class FoodDrink {
     private String name;
     private double price;
     private String category; // "Đồ ăn", "Nước uống"
+    private int pointsCost;
     private boolean available;
 
     public FoodDrink() {}
@@ -25,6 +26,8 @@ public class FoodDrink {
     public void setPrice(double price) { this.price = price; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+    public int getPointsCost() { return pointsCost; }
+    public void setPointsCost(int pointsCost) { this.pointsCost = pointsCost; }
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
 

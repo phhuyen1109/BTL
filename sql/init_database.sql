@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS customers (
     phone VARCHAR(20),
     balance DOUBLE DEFAULT 0,
     total_hours DOUBLE DEFAULT 0,
+    points INT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -59,7 +60,20 @@ CREATE TABLE IF NOT EXISTS food_drinks (
     name VARCHAR(100) NOT NULL,
     price DOUBLE NOT NULL,
     category VARCHAR(50) DEFAULT 'Nước uống',
+    points_cost INT DEFAULT 0,
     available BOOLEAN DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Bảng lịch sử đổi thưởng
+CREATE TABLE IF NOT EXISTS reward_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    food_drink_id INT NOT NULL,
+    food_drink_name VARCHAR(100),
+    points_used INT NOT NULL,
+    redeemed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (food_drink_id) REFERENCES food_drinks(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Bảng đơn hàng
@@ -116,27 +130,27 @@ INSERT INTO computers (name, type, price_per_hour, status, specs) VALUES
 ('Máy 20', 'VIP', 15000, 'Trống', 'Core i9-13900, 64GB RAM, RTX 4080');
 
 -- Menu đồ ăn/uống mẫu
-INSERT INTO food_drinks (name, price, category, available) VALUES
-('Mì tôm', 15000, 'Đồ ăn', true),
-('Mì trứng', 20000, 'Đồ ăn', true),
-('Cơm rang', 30000, 'Đồ ăn', true),
-('Xúc xích', 10000, 'Đồ ăn', true),
-('Bánh mì', 15000, 'Đồ ăn', true),
-('Trà đá', 5000, 'Nước uống', true),
-('Coca-Cola', 12000, 'Nước uống', true),
-('Pepsi', 12000, 'Nước uống', true),
-('Nước suối', 8000, 'Nước uống', true),
-('Trà sữa', 25000, 'Nước uống', true),
-('Cà phê đen', 15000, 'Nước uống', true),
-('Cà phê sữa', 18000, 'Nước uống', true),
-('Red Bull', 15000, 'Nước uống', true),
-('Sting', 10000, 'Nước uống', true),
-('Snack', 10000, 'Đồ ăn', true);
+INSERT INTO food_drinks (name, price, category, points_cost, available) VALUES
+('Mì tôm', 15000, 'Đồ ăn', 2, true),
+('Mì trứng', 20000, 'Đồ ăn', 2, true),
+('Cơm rang', 30000, 'Đồ ăn', 3, true),
+('Xúc xích', 10000, 'Đồ ăn', 1, true),
+('Bánh mì', 15000, 'Đồ ăn', 2, true),
+('Trà đá', 5000, 'Nước uống', 1, true),
+('Coca-Cola', 12000, 'Nước uống', 1, true),
+('Pepsi', 12000, 'Nước uống', 1, true),
+('Nước suối', 8000, 'Nước uống', 1, true),
+('Trà sữa', 25000, 'Nước uống', 3, true),
+('Cà phê đen', 15000, 'Nước uống', 2, true),
+('Cà phê sữa', 18000, 'Nước uống', 2, true),
+('Red Bull', 15000, 'Nước uống', 2, true),
+('Sting', 10000, 'Nước uống', 1, true),
+('Snack', 10000, 'Đồ ăn', 1, true);
 
 -- Khách hàng mẫu
-INSERT INTO customers (name, phone, balance, total_hours) VALUES
-('Nguyễn Văn An', '0901234567', 200000, 15.5),
-('Trần Thị Bình', '0912345678', 150000, 10.0),
-('Lê Hoàng Cường', '0923456789', 500000, 45.0),
-('Phạm Đức Dũng', '0934567890', 100000, 8.5),
-('Hoàng Minh Đức', '0945678901', 300000, 22.0);
+INSERT INTO customers (name, phone, balance, total_hours, points) VALUES
+('Nguyễn Văn An', '0901234567', 200000, 15.5, 15),
+('Trần Thị Bình', '0912345678', 150000, 10.0, 10),
+('Lê Hoàng Cường', '0923456789', 500000, 45.0, 45),
+('Phạm Đức Dũng', '0934567890', 100000, 8.5, 8),
+('Hoàng Minh Đức', '0945678901', 300000, 22.0, 22);

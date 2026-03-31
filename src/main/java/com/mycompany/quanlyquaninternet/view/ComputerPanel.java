@@ -397,15 +397,22 @@ public class ComputerPanel extends JPanel {
         sessionDAO.endSession(session.getId(), totalCost);
         computerDAO.updateStatus(computer.getId(), newStatus);
 
-        // Deduct from customer balance if applicable
+        // Deduct from customer balance and add hours + points if applicable
         if (session.getCustomerId() != null) {
             customerDAO.deductBalance(session.getCustomerId(), totalCost);
-            customerDAO.addHours(session.getCustomerId(), session.getElapsedHours());
+            double hours = session.getElapsedHours();
+            customerDAO.addHours(session.getCustomerId(), hours);
+            // Tích điểm: 1 giờ chơi = 1 điểm
+            int points = (int) hours;
+            if (points > 0) {
+                customerDAO.addPoints(session.getCustomerId(), points);
+            }
         }
 
         refreshComputers();
         JOptionPane.showMessageDialog(this,
-                "Phiên kết thúc!\nTổng chi phí: " + String.format("%,.0f đ", totalCost),
+                "Phiên kết thúc!\nTổng chi phí: " + String.format("%,.0f đ", totalCost) +
+                (session.getCustomerId() != null ? "\nĐiểm tích lũy: +" + (int) session.getElapsedHours() + " ⭐" : ""),
                 "Kết thúc phiên", JOptionPane.INFORMATION_MESSAGE);
     }
 
