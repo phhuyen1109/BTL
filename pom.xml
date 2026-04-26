@@ -8,6 +8,9 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <!-- Tên file JAR gọn gàng -->
+    <name>QuanLyQuanInternet</name>
+
     <dependencies>
         <!-- H2 Database -->
         <dependency>
@@ -39,6 +42,8 @@
     </properties>
 
     <build>
+        <!-- Xuất JAR ra thư mục gốc dự án -->
+        <finalName>QuanLyQuanInternet</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

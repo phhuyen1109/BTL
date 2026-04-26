@@ -1,6 +1,5 @@
-# === Maven ===
+# === Maven build output ===
 target/
-!target/QuanLyQuanInternet-1.0-SNAPSHOT.jar
 
 # === IDE ===
 .vscode/
