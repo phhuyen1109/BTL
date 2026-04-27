@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.RoundRectangle2D;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -12,7 +11,6 @@ public class MainView extends JFrame {
     // Colors
     private static final Color SIDEBAR_BG = new Color(17, 14, 45);
     private static final Color SIDEBAR_HOVER = new Color(35, 32, 70);
-    private static final Color SIDEBAR_ACTIVE = new Color(99, 102, 241);
     private static final Color CONTENT_BG = new Color(24, 21, 55);
     private static final Color HEADER_BG = new Color(20, 17, 50);
     private static final Color TEXT_PRIMARY = new Color(255, 255, 255);
@@ -24,6 +22,7 @@ public class MainView extends JFrame {
     private JPanel[] menuItems;
     private int activeIndex = 0;
     private JLabel lblClock;
+    private JLabel lblPageTitle;
 
     private DashboardPanel dashboardPanel;
     private ComputerPanel computerPanel;
@@ -134,7 +133,7 @@ public class MainView extends JFrame {
         headerPanel.setPreferredSize(new Dimension(0, 55));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 25, 0, 25));
 
-        JLabel lblPageTitle = new JLabel("Dashboard");
+        lblPageTitle = new JLabel("Dashboard");
         lblPageTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblPageTitle.setForeground(TEXT_PRIMARY);
         headerPanel.add(lblPageTitle, BorderLayout.WEST);
@@ -196,17 +195,22 @@ public class MainView extends JFrame {
         updateMenuActive(0);
     }
 
+    // Màu active background ĐÃ BLEND SẴN (opaque, không dùng alpha để tránh artifact tràn)
+    // Công thức: SIDEBAR_BG(17,14,45) blend với ACCENT(99,102,241) ở 10% opacity
+    private static final Color SIDEBAR_ACTIVE_BG = new Color(25, 23, 65);
+
     private JPanel createMenuItem(String icon, String text, int index) {
         JPanel panel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
+                super.paintComponent(g); // Để Swing tự vẽ nền + clip children đúng
+                // Vẽ thanh indicator bên trái nếu đang active
                 if (index >= 0 && index == activeIndex) {
-                    Graphics2D g2d = (Graphics2D) g;
+                    Graphics2D g2d = (Graphics2D) g.create();
                     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    // Active indicator bar
                     g2d.setColor(ACCENT);
                     g2d.fillRoundRect(0, 4, 4, getHeight() - 8, 4, 4);
+                    g2d.dispose();
                 }
             }
         };
@@ -217,8 +221,8 @@ public class MainView extends JFrame {
         panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         JLabel lblIcon = new JLabel(icon);
-        lblIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
-        lblIcon.setPreferredSize(new Dimension(32, 44));
+        lblIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        lblIcon.setPreferredSize(new Dimension(30, 36));
 
         JLabel lblText = new JLabel(text);
         lblText.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -233,6 +237,7 @@ public class MainView extends JFrame {
                 public void mouseEntered(MouseEvent e) {
                     if (index != activeIndex) {
                         panel.setBackground(SIDEBAR_HOVER);
+                        panel.repaint();
                     }
                 }
 
@@ -240,6 +245,7 @@ public class MainView extends JFrame {
                 public void mouseExited(MouseEvent e) {
                     if (index != activeIndex) {
                         panel.setBackground(SIDEBAR_BG);
+                        panel.repaint();
                     }
                 }
 
@@ -256,6 +262,9 @@ public class MainView extends JFrame {
     public void switchToPanel(int index) {
         updateMenuActive(index);
         cardLayout.show(contentPanel, MENU_NAMES[index]);
+        if (lblPageTitle != null) {
+            lblPageTitle.setText(MENU_NAMES[index]);
+        }
         refreshPanel(index);
     }
 
@@ -265,11 +274,12 @@ public class MainView extends JFrame {
             menuItems[activeIndex].setBackground(SIDEBAR_BG);
             Component lblText = ((BorderLayout) menuItems[activeIndex].getLayout()).getLayoutComponent(BorderLayout.CENTER);
             if (lblText instanceof JLabel) ((JLabel) lblText).setForeground(TEXT_SECONDARY);
+            menuItems[activeIndex].repaint();
         }
         activeIndex = newIndex;
-        // Set new
+        // Set new - dùng màu OPAQUE đã blend sẵn, KHÔNG dùng alpha
         if (activeIndex >= 0 && activeIndex < menuItems.length) {
-            menuItems[activeIndex].setBackground(new Color(99, 102, 241, 20));
+            menuItems[activeIndex].setBackground(SIDEBAR_ACTIVE_BG);
             Component lblText = ((BorderLayout) menuItems[activeIndex].getLayout()).getLayoutComponent(BorderLayout.CENTER);
             if (lblText instanceof JLabel) ((JLabel) lblText).setForeground(TEXT_PRIMARY);
             menuItems[activeIndex].repaint();

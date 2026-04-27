@@ -1,6 +1,6 @@
 #FileLock
-#Mon Mar 30 22:03:10 ICT 2026
+#Wed Apr 22 09:20:12 ICT 2026
 hostName=HUYEN
-id=19d3efc6b9da7ad8ff249c76be1997c7eb4d307c76a
+id=19db2fce8b068fb02459f37560a3ce04a91622aece7
 method=file
-server=192.168.1.36\:58414
+server=192.168.0.226\:54557

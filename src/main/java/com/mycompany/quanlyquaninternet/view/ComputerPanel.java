@@ -105,7 +105,7 @@ public class ComputerPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(CARD_BG);
+                g2d.setColor(cardBg); // Sửa lỗi: dùng biến cardBg thay cho hằng số CARD_BG
                 g2d.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 14, 14));
                 // Status border
                 g2d.setColor(statusColor);

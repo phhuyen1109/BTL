@@ -43,7 +43,11 @@ public class CustomerPanel extends JPanel {
 
         txtSearch = new JTextField(20);
         txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        txtSearch.putClientProperty("JTextField.placeholderText", "Tìm kiếm theo tên hoặc SĐT...");
+        txtSearch.setPreferredSize(new Dimension(250, 30));
+        txtSearch.setMinimumSize(new Dimension(200, 30));
+        txtSearch.setMaximumSize(new Dimension(300, 30));
+        txtSearch.putClientProperty("JTextField.placeholderText", "Nhập tên hoặc SĐT...");
+        txtSearch.addActionListener(e -> searchCustomers()); // Nhấn Enter để tìm
         searchPanel.add(txtSearch);
 
         JButton btnSearch = new JButton("\uD83D\uDD0D Tìm");
@@ -132,6 +136,13 @@ public class CustomerPanel extends JPanel {
         }
         tableModel.setRowCount(0);
         List<Customer> results = customerDAO.search(keyword);
+        if (results.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Không tìm thấy khách hàng với từ khóa: \"" + keyword + "\"",
+                "Kết quả tìm kiếm", JOptionPane.INFORMATION_MESSAGE);
+            loadCustomers();
+            return;
+        }
         for (Customer c : results) {
             tableModel.addRow(new Object[]{
                 c.getId(),
