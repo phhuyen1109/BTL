@@ -35,15 +35,14 @@ public class LoginController {
             if ("admin".equals(username) && "admin".equals(password)) {
                 // Test DB connection
                 if (!DatabaseConnection.testConnection()) {
-                    loginView.showMessage("Không thể kết nối database! Kiểm tra MySQL.");
+                    loginView.showMessage("Không thể kết nối database!");
                     JOptionPane.showMessageDialog(loginView,
-                        "Không thể kết nối MySQL!\n\n" +
-                        "Hướng dẫn:\n" +
-                        "1. Đảm bảo MySQL đang chạy\n" +
-                        "2. Chạy file sql/init_database.sql\n" +
-                        "3. Kiểm tra file src/main/resources/db.properties\n\n" +
-                        "Mặc định: root / (không mật khẩu)",
-                        "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
+                            "Không thể kết nối Cơ sở dữ liệu!\n\n" +
+                                    "Hướng dẫn:\n" +
+                                    "1. Giải nén toàn bộ file ZIP trước khi chạy\n" +
+                                    "2. Đảm bảo thư mục 'data/' nằm cùng thư mục với file JAR\n" +
+                                    "3. Đảm bảo có quyền đọc/ghi trong thư mục hiện tại",
+                            "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 

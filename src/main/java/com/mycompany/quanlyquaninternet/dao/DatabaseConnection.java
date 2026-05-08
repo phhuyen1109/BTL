@@ -25,11 +25,11 @@ public class DatabaseConnection {
                 String driver = props.getProperty("db.driver");
                 Class.forName(driver);
             } else {
-                // Default fallback
-                url = "jdbc:mysql://localhost:3306/quanly_internet?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&characterEncoding=utf8";
-                username = "root";
+                // Default fallback - dùng H2 embedded
+                url = "jdbc:h2:./data/quanlyquaninternet;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE";
+                username = "sa";
                 password = "";
-                Class.forName("com.mysql.cj.jdbc.Driver");
+                Class.forName("org.h2.Driver");
             }
         } catch (Exception e) {
             e.printStackTrace();

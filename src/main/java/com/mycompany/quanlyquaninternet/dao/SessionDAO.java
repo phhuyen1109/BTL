@@ -122,7 +122,7 @@ public class SessionDAO {
     }
 
     public double getRevenueByDate(Date date) {
-        String sql = "SELECT COALESCE(SUM(total_cost), 0) FROM sessions WHERE DATE(start_time) = DATE(?) AND status = 'Kết thúc'";
+        String sql = "SELECT COALESCE(SUM(total_cost), 0) FROM sessions WHERE DATE(start_time) = DATE(?) AND status LIKE 'K%t th%c'";
         try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
             pstmt.setDate(1, new java.sql.Date(date.getTime()));
             ResultSet rs = pstmt.executeQuery();
@@ -134,7 +134,7 @@ public class SessionDAO {
     }
 
     public double getRevenueBetweenDates(Date from, Date to) {
-        String sql = "SELECT COALESCE(SUM(total_cost), 0) FROM sessions WHERE DATE(start_time) BETWEEN DATE(?) AND DATE(?) AND status = 'Kết thúc'";
+        String sql = "SELECT COALESCE(SUM(total_cost), 0) FROM sessions WHERE DATE(start_time) BETWEEN DATE(?) AND DATE(?) AND status LIKE 'K%t th%c'";
         try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
             pstmt.setDate(1, new java.sql.Date(from.getTime()));
             pstmt.setDate(2, new java.sql.Date(to.getTime()));
@@ -151,16 +151,16 @@ public class SessionDAO {
      */
     public List<Object[]> getDailyRevenue(Date from, Date to) {
         List<Object[]> list = new ArrayList<>();
-        String sql = "SELECT DATE(start_time) as day, COALESCE(SUM(total_cost), 0) as revenue, COUNT(*) as sessions " +
-                     "FROM sessions WHERE DATE(start_time) BETWEEN DATE(?) AND DATE(?) AND status = 'Kết thúc' " +
-                     "GROUP BY DATE(start_time) ORDER BY day";
+        String sql = "SELECT DATE(start_time) as ngay_phien, COALESCE(SUM(total_cost), 0) as revenue, COUNT(*) as sessions " +
+                     "FROM sessions WHERE DATE(start_time) BETWEEN DATE(?) AND DATE(?) AND status LIKE 'K%t th%c' " +
+                     "GROUP BY DATE(start_time) ORDER BY ngay_phien";
         try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
             pstmt.setDate(1, new java.sql.Date(from.getTime()));
             pstmt.setDate(2, new java.sql.Date(to.getTime()));
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 list.add(new Object[]{
-                    rs.getDate("day"),
+                    rs.getDate("ngay_phien"),
                     rs.getDouble("revenue"),
                     rs.getInt("sessions")
                 });
