@@ -1,12 +1,36 @@
 # CHƯƠNG 3: THIẾT KẾ (USE-CASE DESIGN)
 
 > **👤 PHÂN CÔNG THỰC HIỆN:**
-> - **Thành viên 1 (Trưởng nhóm, Database/Backend):** Chịu trách nhiệm toàn bộ nội dung chương này. Triển khai các Biểu đồ Lớp (Class Diagram), ERD CSDL, Sơ đồ Trạng thái (State Diagram) và Sơ đồ Thành phần (Component Diagram).
+> - **Thành viên 1 (Trưởng nhóm, Database/Backend):** Chịu trách nhiệm toàn bộ nội dung chương này.
 
 ---
 
-## 3.1 Thiết kế Sơ đồ Lớp (Class Diagram)
+## 3.1 Xác định các thành phần thiết kế (Identify design elements)
 
+### 3.1.1 Xác định các lớp (Identify classes)
+Quá trình ánh xạ từ yêu cầu người dùng sang code Java được hiện thực hóa qua các thành phần thực thể cốt lõi: `MayTinh`, `KhachHang`, `PhienSuDung`, `DoAnUong`. Chúng mang tính chất đóng gói dữ liệu (Encapsulation) thông qua các field `private` và phương thức `Getter/Setter`.
+
+### 3.1.2 Xác định các hệ thống con và giao diện (Identify subsystems and interfaces)
+Dự án bao gồm 3 hệ thống con chính (Subsystems):
+- **Core Session Subsystem:** Quản lý vòng đời hoạt động của Phiên và Máy tính.
+- **Accounting Subsystem:** Hệ thống kế toán ẩn xử lý tính giờ, tính điểm thưởng và nạp tiền.
+- **Service Subsystem:** Hệ thống phụ chịu trách nhiệm về menu đồ ăn thức uống.
+
+### 3.1.3 Xác định các gói (Identify packages)
+Hệ thống tuân thủ thiết kế phân tầng tiêu chuẩn trong Java bằng 4 package:
+- `entity`: Chứa POJO.
+- `dao`: Chứa các bộ truy cập DB.
+- `controller`: Chứa logic điều hướng.
+- `view`: Chứa màn hình.
+
+---
+
+## 3.2 Thiết kế trường hợp sử dụng (Use-case design)
+
+### 3.2.1 Thiết kế các biểu đồ tuần tự (Design sequence diagrams)
+(Các biểu đồ tuần tự chi tiết về sự luân chuyển dữ liệu ở cấp độ Class và Database đã được phân tích và vẽ đầy đủ ở **Mục 2.2.1** - Biểu đồ Bắt đầu Phiên và Nạp tiền).
+
+### 3.2.2 Thiết kế biểu đồ lớp (Class diagrams)
 Sơ đồ mô tả cấu trúc của các lớp thực thể trọng yếu nhất cấu thành nên phần mềm quản lý, cũng như mối quan hệ nhân quả giữa chúng.
 
 ```mermaid
@@ -14,10 +38,8 @@ classDiagram
     class MayTinh {
         -int ma
         -String ten
-        -String loai
         -double giaMoiGio
         -String trangThai
-        +getMa() int
         +getGiaMoiGio() double
         +setTrangThai(String) void
     }
@@ -25,9 +47,7 @@ classDiagram
     class KhachHang {
         -int ma
         -String ten
-        -String sdt
         -double soDu
-        -double tongGio
         -int diem
         +truTien(double) boolean
         +congDiem(int) void
@@ -38,9 +58,7 @@ classDiagram
         -int maMayTinh
         -Integer maKhachHang
         -Date gioBatDau
-        -Date gioKetThuc
         -double tongTien
-        -String trangThai
         +tinhTien(double giaMay) double
         +ketThucPhien() void
     }
@@ -49,42 +67,20 @@ classDiagram
         -int ma
         -String ten
         -double gia
-        -String phanLoai
         -int diemDoi
-        -boolean conHang
     }
 
     KhachHang "1" -- "0..*" PhienSuDung : Thực hiện
-    MayTinh "1" -- "0..*" PhienSuDung : Lưu vết qua
+    MayTinh "1" -- "0..*" PhienSuDung : Diễn ra tại
     PhienSuDung "1" -- "0..*" DoAnUong : Gọi dịch vụ
 ```
 
 ---
 
-## 3.2 Sơ đồ Trạng thái (State Machine Diagram)
+## 3.3 Thiết kế cơ sở dữ liệu (Database design)
 
-Trong phần mềm quản lý phòng máy, thực thể `Máy Tính` sở hữu chu trình sống (lifecycle) trạng thái cực kỳ nghiêm ngặt nhằm tránh việc trùng lặp phiên (hai người ngồi một máy).
-
-```mermaid
-stateDiagram-v2
-    [*] --> TRONG : Máy vừa cài đặt / Khởi động phần mềm
-    
-    TRONG --> DANG_DUNG : Nhân viên Mở máy (Bắt đầu phiên)
-    DANG_DUNG --> DANG_DUNG : Thêm dịch vụ đồ ăn vào máy
-    
-    DANG_DUNG --> TRONG : Nhân viên Thanh toán & Đóng máy
-    
-    TRONG --> BAO_TRI : Phát hiện hỏng hóc
-    BAO_TRI --> TRONG : Sửa xong
-```
-
----
-
-## 3.3 Thiết kế Cơ sở dữ liệu (Database Design)
-
-### 3.3.1 Sơ đồ Thực thể - Mối quan hệ (Entity-Relationship Diagram)
-
-Sơ đồ ERD của toàn bộ hệ thống Database H2. Mối quan hệ giữa bảng gốc (KHACH_HANG, MAY_TINH, DO_AN_UONG) và bảng phát sinh (PHIEN_SU_DUNG, DON_HANG, LICH_SU_DOI_THUONG).
+### 3.3.1 Lược đồ cơ sở dữ liệu
+Sơ đồ ERD (Entity-Relationship Diagram) của hệ thống Database H2. Mối quan hệ giữa bảng gốc và bảng phát sinh.
 
 ```mermaid
 erDiagram
@@ -120,44 +116,13 @@ erDiagram
         double tong_tien
     }
 
-    KHACH_HANG ||--o{ PHIEN_SU_DUNG : "Có"
-    MAY_TINH ||--o{ PHIEN_SU_DUNG : "Tổ chức"
+    KHACH_HANG ||--o{ PHIEN_SU_DUNG : "Sở hữu"
+    MAY_TINH ||--o{ PHIEN_SU_DUNG : "Lưu vết"
     PHIEN_SU_DUNG ||--o{ DON_HANG : "Chứa"
 ```
 
----
-
-## 3.4 Sơ đồ Thành phần (Component Diagram)
-
-Kiến trúc gói mã nguồn và sự giao tiếp giữa các thành phần nội bộ trong ứng dụng Java.
-
-```mermaid
-flowchart TD
-    subgraph UI_Layer [Tầng Giao Diện - View Component]
-        UI_Login[GiaoDienDangNhap]
-        UI_Main[GiaoDienChinh]
-        UI_Modules[Các Panel Chức Năng]
-    end
-
-    subgraph Controller_Layer [Tầng Xử Lý - Controller Component]
-        Ctrl_Auth[Auth Controller]
-        Ctrl_Logic[Logic Controller]
-    end
-
-    subgraph Data_Layer [Tầng Truy cập dữ liệu - DAO Component]
-        DAO_Connection["KetNoiCSDL (Singleton)"]
-        DAO_Classes["KhachHangDAO, MayTinhDAO..."]
-    end
-
-    DB[("H2 Embedded Database")]
-
-    UI_Login --> Ctrl_Auth
-    UI_Main --> UI_Modules
-    UI_Modules --> Ctrl_Logic
-    
-    Ctrl_Auth --> DAO_Classes
-    Ctrl_Logic --> DAO_Classes
-    
-    DAO_Classes --> DAO_Connection
-    DAO_Connection --> DB
-```
+### 3.3.2 Chi tiết các bảng
+**Ràng buộc toàn vẹn Dữ liệu được thiết kế cứng trong Database:**
+- Bảng **KHACH_HANG**: Cột `sdt` (Số điện thoại) được gán là `UNIQUE` nhằm chống tạo tài khoản ảo lấy điểm thưởng.
+- Bảng **MAY_TINH**: Cột `gia_moi_gio` cài đặt `NOT NULL`.
+- Bảng **LICH_SU_DOI_THUONG**: Áp dụng Khóa ngoại kép tới `KhachHang` và `DoAnUong`, tạo ra 1 dòng ghi chú tài chính mỗi khi khách đổi điểm để quản lý dễ bề đối soát.

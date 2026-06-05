@@ -1,70 +1,51 @@
-# CHƯƠNG 4: CÀI ĐẶT (IMPLEMENTATION) & CHƯƠNG 5: KẾT LUẬN
+# CHƯƠNG 4: CÀI ĐẶT (IMPLEMENTATION)
 
 > **👤 PHÂN CÔNG THỰC HIỆN:**
 > - **Thành viên 4 (Backend, Tester):** Viết mục 4.1 và 4.2. Chịu trách nhiệm quản lý cấu trúc mã nguồn, vẽ sơ đồ Deployment, đóng gói Fat-JAR deploy ứng dụng.
-> - **Thành viên 2 (UI/UX, Frontend):** Viết mục 5.1 và 5.2. Chụp ảnh ứng dụng minh họa và đánh giá giao diện.
-> - **Thành viên 1 (Trưởng nhóm):** Viết mục 5.3 và 5.4, chuẩn bị slide thuyết trình tổng hợp và phân công bảo vệ đồ án.
+> - **Thành viên 1 & 2:** Hỗ trợ chuẩn bị Chương 5 và Phụ lục chụp ảnh.
 
 ---
 
-## 4. CÀI ĐẶT (IMPLEMENTATION)
-
-### 4.1 Quá trình lựa chọn công nghệ và Công cụ
+## 4.1 Lựa chọn công nghệ
 Quyết định kiến trúc của CyberNet tập trung vào việc tạo ra một phần mềm cài đặt siêu tốc, không rào cản.
+1. **Ngôn ngữ Lập trình:** `Java 17 (LTS)`.
+2. **Framework Giao diện:** `Java Swing`. Để khắc phục yếu điểm giao diện cũ của Swing, nhóm đã tích hợp thư viện **FlatLaf**. Nó phủ một lớp áo Dark Theme mượt mà, giúp ứng dụng trở nên sang trọng như các công nghệ web hiện đại.
+3. **Cơ sở Dữ liệu:** `H2 Database Embedded Engine`. Giải quyết hoàn hảo bài toán Portable (Mang app đi nơi khác). Không cần cài đặt bất kỳ SQL Server nào, database được lưu tại file `quanlyquaninternet.mv.db`.
+4. **Công cụ Build:** `Apache Maven` kết hợp Shade Plugin để nén tất cả class và ảnh vào file `.jar` duy nhất.
 
-1. **Ngôn ngữ Lập trình:** `Java 17 (LTS)`. Có Garbage Collector quản lý bộ nhớ tự động, vô cùng phù hợp để xây dựng các ứng dụng desktop chạy 24/7 như quán net.
-2. **Framework Giao diện:** `Java Swing`. Thay vì JavaFX cần kéo thả phức tạp, Swing cung cấp thư viện linh hoạt. Để khắc phục yếu điểm "giao diện thập niên 90" của Swing, nhóm đã mạnh dạn tích hợp thư viện **FlatLaf**. Nó phủ một lớp áo Dark Theme mượt mà, đổi icon đồng bộ.
-3. **Cơ sở Dữ liệu Embedded:** `H2 Database Engine`.
-   - Lợi thế vượt trội: Không cần cài đặt (zero-configuration), được lập trình bằng 100% mã Java nguyên thủy. Database được tạo ngay tại thư mục chứa file chạy `data/quanlyquaninternet.mv.db`.
-4. **Công cụ Build:** `Apache Maven`.
-
-### 4.2 Sơ đồ Triển khai Ứng dụng (Deployment Diagram)
-
-Nhờ việc sử dụng Maven Shade Plugin để gộp toàn bộ thư viện và H2 Database Engine vào chung một file `CyberNet.jar` duy nhất (Fat-JAR), cấu trúc triển khai xuống máy của chủ quán net cực kỳ đơn giản:
-
-```mermaid
-flowchart TD
-    subgraph "Máy tính Thu Ngân (Local Machine)"
-        JRE[Java Runtime Environment 17+]
-        
-        subgraph "Thư mục cài đặt phần mềm (App Folder)"
-            JAR(["CyberNet-1.0-SNAPSHOT.jar <br> Dạng Fat-JAR"])
-            DB_File[("quanlyquaninternet.mv.db <br> File CSDL cục bộ")]
-            Lock_File["quanlyquaninternet.lock.db"]
-        end
-        
-        JRE -->|Thực thi| JAR
-        JAR <-->|JDBC Read/Write| DB_File
-        JAR -->|Sinh ra khóa bảo vệ| Lock_File
-    end
-    
-    User((Nhân viên Thu Ngân)) -->|Tương tác UI| JAR
+## 4.2 Cấu trúc mã nguồn
+Sử dụng Maven, thư mục được phân bố theo chuẩn:
+```text
+src/main/java/com/mycompany/quanlyquaninternet/
+├── controller/         # Chứa Logic và Event Listeners
+├── dao/                # Chứa class truy cập H2 (KhachHangDAO, MayTinhDAO)
+├── entity/             # Các Entity tương ứng CSDL
+├── view/               # Toàn bộ Panel, Frame giao diện Swing
+└── QuanLyQuanInternet.java # File Main
 ```
-*(Mô hình trên thể hiện rõ tính chất Local Desktop Application độc lập hoàn toàn mạng lưới Internet bên ngoài).*
 
 ---
 
-## 5. KẾT LUẬN
+# 5. KẾT LUẬN
 
-### 5.1 Đánh giá kết quả phần mềm
-Sau quá trình thiết kế, lập trình và chạy thử nghiệm, sản phẩm "Phần mềm Quản lý CyberNet" đã đạt được độ hoàn thiện xuất sắc:
-- **Tốc độ:** Khởi chạy dưới 2 giây. Các thao tác chuyển màn hình (Render CardLayout) mượt mà, không gặp hiện tượng treo UI.
-- **Tính chính xác:** Engine H2 kết hợp logic Java chạy song song đảm bảo đồng hồ thời gian của các máy trạm không bị sai số. Tiền giờ được thu về khớp từng đồng so với báo cáo doanh thu.
-- **Tính thẩm mỹ:** Dark Mode của FlatLaf đem lại một làn gió mới. Giao diện trực quan, nhân viên chỉ mất 5 phút hướng dẫn để làm quen phần mềm.
+**Đánh giá phần mềm:**
+Phần mềm Quản lý CyberNet đã đạt được độ hoàn thiện xuất sắc. Tốc độ khởi chạy nhanh, thuật toán tính thời gian/tiền chính xác tuyệt đối và giao diện Dark mode trực quan, hỗ trợ tối đa cho nhân viên phòng máy. Hạn chế nhỏ duy nhất là phần mềm hiện tại chưa tích hợp lệnh mở khóa màn hình qua mạng LAN. Nhóm dự định sẽ mở rộng kiến trúc Client-Server sử dụng TCP Socket trong tương lai.
 
-*(Team lưu ý: Thành viên 2 sẽ chụp ảnh Màn hình Đăng nhập, Màn hình Máy Trống/Đang dùng, Màn hình Báo Cáo Doanh Thu, Màn hình đổi điểm thưởng và dán trực tiếp vào file Word tại đây để chứng minh).*
+**Kết luận chung:**
+Đồ án môn Phân tích và Thiết kế Phần mềm đã mang lại cho nhóm một bức tranh toàn cảnh về quy trình sản xuất phần mềm. Cảm ơn giảng viên TS. Mai Thúy Nga đã tận tình hướng dẫn.
 
-### 5.2 Hạn chế còn tồn đọng (Limitations)
-Tuy mang tính đột phá, phần mềm vẫn là bản Local Desktop và chịu giới hạn ở một số yếu điểm:
-- **Tương tác một chiều:** Phần mềm trên máy Chủ không truyền lệnh khóa màn hình được xuống máy Khách (Client PC) qua mạng LAN. Thu ngân vẫn phải quan sát khách về thì mới tự tay ấn "Kết thúc".
-- **Bảo mật cục bộ:** Mật khẩu chưa được Hash bằng SHA-256. Database H2 tuy nằm trên ổ cứng nhưng chưa thiết lập mật khẩu mã hóa (Encrypted File).
+---
 
-### 5.3 Lộ trình Mở rộng (Future Work)
-- **Tích hợp API Thanh Toán (Fintech):** Mở rộng tính năng tự động tạo mã QR Code động. Khách hàng nạp tiền qua mã QR chuyển khoản, phần mềm lắng nghe Webhook từ ngân hàng và tự động cập nhật số dư không cần nhân viên gõ tay.
-- **Mô hình Client-Server thực thụ:** Viết thêm một tệp thực thi (Client Agent) chạy ngầm dưới máy con, sử dụng Socket.IO trong Java để truyền lệnh Khóa/Mở máy từ xa qua mạng LAN nội bộ.
-- **Cloud Database:** Đổi engine từ H2 sang PostgreSQL trên server đám mây, giúp người quản lý mở app trên điện thoại theo dõi tình hình quán Internet 24/7 từ nhà.
+# TÀI LIỆU THAM KHẢO
+1. TS. Mai Thúy Nga (2026), *Bài giảng Phân tích và Thiết kế Hệ thống Thông tin*, Đại học Phenikaa.
+2. Craig Walls (2022), *Spring in Action, 6th Edition*, Manning Publications.
+3. Tài liệu trang chủ FlatLaf - Flat Look and Feel for Java Swing: `https://www.formdev.com/flatlaf/`
+4. Tài liệu trang chủ H2 Database Engine: `http://www.h2database.com/`
 
-### 5.4 Tổng kết Đồ án
-Môn học **Phân tích và Thiết kế Phần mềm** đã trang bị cho nhóm một bộ khung tư duy nền tảng vững chắc. Từ xuất phát điểm là một bài toán mờ mịt của chủ quán Internet, thông qua quá trình Khảo sát -> Mô hình hóa Use-case -> Vẽ kiến trúc MVC & ERD -> Cài đặt code, bài toán đã được giải quyết triệt để.
+---
 
-Nhóm xin chân thành gửi lời cảm ơn đến **TS. Mai Thúy Nga**, giảng viên trực tiếp giảng dạy. Bằng hệ thống lý thuyết thực tiễn và Template báo cáo chuẩn mực, cô đã dẫn dắt nhóm vượt qua các rào cản kỹ thuật để tạo ra một đồ án có chất lượng cao nhất.
+# PHỤ LỤC (nếu có)
+- **Hình 1:** Giao diện Màn hình Đăng nhập (Mã nguồn đính kèm file).
+- **Hình 2:** Giao diện Quản lý Máy Tính - Phiên hoạt động thực tế.
+- **Hình 3:** Giao diện Thống kê Doanh thu dạng biểu đồ cột.
+*(Ghi chú cho nhóm: Các thành viên tự chụp ảnh màn hình phần mềm Java đang chạy trên máy tính và dán đè vào mục này).*

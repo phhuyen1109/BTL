@@ -2,51 +2,35 @@
 
 > **👤 PHÂN CÔNG THỰC HIỆN:**
 > - **Thành viên 3 (BA, Phân tích nghiệp vụ):** Chịu trách nhiệm thiết kế, lập luận kiến trúc và vẽ các Biểu đồ Tuần tự (Sequence Diagram), Sơ đồ Hoạt động luồng dữ liệu.
-> - **Thành viên 4 (Backend Developer):** Hỗ trợ lập tài liệu mô tả tương tác giữa các Lớp (Views of participating classes) dựa vào source code Controller/DAO.
+> - **Thành viên 4 (Backend Developer):** Hỗ trợ lập tài liệu mô tả tương tác giữa các Lớp (Views of participating classes) dựa vào source code.
 
 ---
 
 ## 2.1 Phân tích kiến trúc hệ thống
 
-### 2.1.1 Kiến trúc mức cao (High-level Architecture)
-Hệ thống quản lý quán Internet CyberNet được thiết kế mạnh mẽ dựa trên sự kết hợp giữa **mô hình MVC (Model-View-Controller)** và thiết kế **DAO (Data Access Object) Pattern**. Lựa chọn này giúp hệ thống tách biệt rành mạch giữa dữ liệu thô, logic xử lý nghiệp vụ và thành phần giao diện, từ đó tạo tiền đề bảo trì dễ dàng sau này.
+### 2.1.1 Kiến trúc mức cao của hệ thống (High-level Architecture)
+Hệ thống quản lý quán Internet CyberNet được thiết kế mạnh mẽ dựa trên sự kết hợp giữa **mô hình MVC (Model-View-Controller)** và thiết kế **DAO (Data Access Object) Pattern**. 
 
-1. **Lớp View (Giao diện):** Xây dựng bằng Java Swing kết hợp FlatLaf. Đảm nhận việc vẽ các màn hình, lắng nghe thao tác click chuột.
-2. **Lớp Controller (Điều khiển):** Bắt sự kiện (Event Listener) từ lớp View. Thực hiện Data Validation. Điều phối luồng xử lý bằng cách gọi các dịch vụ từ lớp DAO.
-3. **Lớp DAO (Data Access):** Tương tác trực tiếp với file database nhúng H2.
-4. **Lớp Entity (Thực thể):** Ánh xạ cấu trúc bảng trong DB thành đối tượng Java (POJO).
+1. **Lớp View (Giao diện):** Xây dựng bằng Java Swing kết hợp FlatLaf. Đảm nhận việc vẽ các màn hình (Panel) và lắng nghe tương tác người dùng.
+2. **Lớp Controller (Điều khiển):** Bắt sự kiện từ lớp View. Thực hiện Data Validation và chuyển giao nhiệm vụ cho lớp truy cập dữ liệu.
+3. **Lớp DAO (Data Access):** Tương tác trực tiếp với cơ sở dữ liệu H2 bằng các câu lệnh SQL CRUD. Áp dụng Mẫu Singleton (`KetNoiCSDL`) để duy trì duy nhất một ống dẫn dữ liệu xuyên suốt vòng đời ứng dụng.
 
----
-
-## 2.2 Sơ đồ Hoạt động Hệ thống (System Activity Diagrams)
-Sơ đồ hoạt động đi sâu vào việc giải quyết tuần tự các điều kiện logic của hệ thống.
-
-### 2.2.1 Sơ đồ Hoạt động: Đăng nhập Hệ thống
-Mô tả quy trình kiểm tra bảo mật trước khi truy cập phần mềm.
-
-```mermaid
-stateDiagram-v2
-    [*] --> NhapThongTin: Nhân viên nhập Username & Password
-    NhapThongTin --> KiemTraRong: Bấm "Đăng nhập"
-    
-    KiemTraRong --> NhapThongTin: Nếu bỏ trống
-    KiemTraRong --> TruyenVaoDB: Dữ liệu đầy đủ
-    
-    TruyenVaoDB --> KiemTraSai: Mật khẩu sai / Tài khoản không tồn tại
-    KiemTraSai --> NhapThongTin: Báo lỗi "Thông tin không chính xác"
-    
-    TruyenVaoDB --> DangNhapThanhCong: Mật khẩu đúng
-    DangNhapThanhCong --> MoGiaoDienChinh: Đóng form Login, Load Dashboard
-    MoGiaoDienChinh --> [*]
-```
+### 2.1.2 Các đối tượng trừu tượng hóa chính của hệ thống (Key abstractions)
+Dựa trên miền nghiệp vụ (Business Domain), 4 đối tượng trừu tượng cốt lõi được định nghĩa:
+- **NguoiDung (Admin/Staff):** Đại diện cho người vận hành phần mềm. 
+- **MayTinh (Máy Trạm):** Tài sản cố định của quán, có thuộc tính Đơn giá và Trạng thái.
+- **KhachHang (Tài khoản):** Thực thể di động nắm giữ Số dư ví ảo và Điểm thưởng.
+- **PhienSuDung (Session):** Thực thể trung tâm liên kết Máy tính và Khách hàng. Mỗi khi Máy được bật, một Phiên được tạo ra để đo đạc thời gian và hứng hóa đơn Dịch vụ.
 
 ---
 
-## 2.3 Thực thi trường hợp sử dụng (Use-case realizations - Sequence Diagrams)
+## 2.2 Thực thi trường hợp sử dụng (Use-case realizations)
 
-Các biểu đồ tuần tự (Sequence Diagram) thể hiện sự giao tiếp thông điệp (Message Passing) giữa các thành phần MVC.
+### 2.2.1 Các biểu đồ tuần tự (Sequence diagrams)
 
-### 2.3.1 Biểu đồ Tuần tự: Quy trình Bắt đầu Phiên (Mở máy)
+Các biểu đồ tuần tự thể hiện rõ nét sự trao đổi thông điệp (Message Passing) giữa Actor và các tầng MVC theo thời gian.
+
+**1. Biểu đồ Tuần tự: Quy trình Bắt đầu Phiên (Mở máy)**
 
 ```mermaid
 sequenceDiagram
@@ -61,23 +45,21 @@ sequenceDiagram
     View->>DAO_KH: layTatCa()
     DAO_KH->>DB: SELECT * FROM KHACH_HANG
     DB-->>DAO_KH: Trả về Danh sách
-    DAO_KH-->>View: Render Combobox
+    DAO_KH-->>View: Render List lên Combobox
     
-    Staff->>View: Chọn khách & Bấm "Bắt đầu"
-    View->>DAO_Phien: batDauPhien(maMay, maKhach, thoiGian)
+    Staff->>View: Bấm "Xác nhận Bắt đầu"
+    View->>DAO_Phien: batDauPhien(maMay, maKhach)
     DAO_Phien->>DB: INSERT INTO PHIEN_SU_DUNG
     DB-->>DAO_Phien: Return Success
-    
-    DAO_Phien-->>View: Thông báo Đã tạo phiên
     
     View->>DAO_May: capNhatTrangThai(maMay, "Đang dùng")
     DAO_May->>DB: UPDATE MAY_TINH SET trang_thai='Đang dùng'
     DB-->>DAO_May: Return Success
     
-    DAO_May-->>View: Reload lại Giao diện máy tính (đổi sang màu đỏ)
+    DAO_May-->>View: Reload lại Giao diện máy tính (đổi màu)
 ```
 
-### 2.3.2 Biểu đồ Tuần tự: Nạp Tiền & Tự động Cộng Điểm
+**2. Biểu đồ Tuần tự: Quy trình Nạp Tiền & Tự động Cộng Điểm**
 
 ```mermaid
 sequenceDiagram
@@ -102,28 +84,10 @@ sequenceDiagram
     View-->>Staff: Báo Nạp Tiền Thành Công và Reload Bảng
 ```
 
-### 2.3.3 Biểu đồ Tuần tự: Kết thúc Phiên & Thanh toán
-
-```mermaid
-sequenceDiagram
-    actor Staff as Nhân viên
-    participant View as PanelMayTinh
-    participant DAO_Phien as PhienSuDungDAO
-    participant DAO_DonHang as DonHangDAO
-    participant DAO_May as MayTinhDAO
-
-    Staff->>View: Nhấn "Thanh toán/Kết thúc"
-    View->>DAO_Phien: layThongTinPhienHienTai()
-    DAO_Phien-->>View: Trả về Phien_Object (gioBatDau)
-    
-    View->>DAO_DonHang: tinhTongTienDichVu(maPhien)
-    DAO_DonHang-->>View: Trả về Tiền Đồ Ăn
-    
-    View->>View: Tính (Tiền Giờ = TGian x Đơn Giá)
-    View->>View: Tổng Hóa Đơn = Tiền Giờ + Tiền Đồ Ăn
-    
-    View->>DAO_Phien: dongPhien(maPhien, TongHoaDon)
-    View->>DAO_May: resetTrangThaiMay(maMay)
-    
-    View-->>Staff: Hiển thị Hóa Đơn Chi Tiết
-```
+### 2.2.2 Góc nhìn của các lớp trong hệ thống (Views of participating classes)
+Sự kết nối giữa các Lớp (Views of participating classes) được kiểm soát chặt chẽ thông qua Controller. Ví dụ trong quy trình **Kết thúc Phiên thanh toán**:
+1. Lớp giao diện `PanelMayTinh` gửi thông điệp yêu cầu tính tiền.
+2. `PhienSuDungDAO` truy xuất thời gian `gioBatDau`, tính toán sự chênh lệch giờ hệ thống để quy ra Số Giờ Chơi thực tế.
+3. `DonHangDAO` (nếu có) đóng góp tổng số tiền Dịch vụ (Đồ ăn/uống) được gắn với `maPhien`.
+4. Logic Controller tính `Tổng Tiền` và gọi `KhachHangDAO.truTien()`.
+5. Cuối cùng, `MayTinhDAO` phục hồi trạng thái máy về Trống. Đảm bảo toàn vẹn giao dịch (Transaction Integrity).
