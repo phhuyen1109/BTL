@@ -44,22 +44,22 @@ Hệ thống cung cấp trải nghiệm quản lý đóng kín dành cho phía d
 Hệ thống xoay quanh 2 tác nhân chính là Admin (Chủ quán) và Staff (Nhân viên thu ngân).
 
 ```mermaid
-usecaseDiagram
-    actor "Nhân viên (Staff)" as staff
-    actor "Chủ quán (Admin)" as admin
+flowchart LR
+    staff((Nhân viên))
+    admin((Chủ quán))
     
-    admin <|-- staff : "kế thừa quyền"
+    admin -.->|"kế thừa"| staff
     
-    package "Hệ thống CyberNet" {
-        usecase "Đăng nhập" as UC1
-        usecase "Quản lý Máy trạm" as UC2
-        usecase "Bắt đầu / Kết thúc Phiên" as UC3
-        usecase "Quản lý Khách hàng" as UC4
-        usecase "Nạp tiền vào tài khoản" as UC5
-        usecase "Đổi thưởng bằng điểm" as UC6
-        usecase "Quản lý Đồ ăn / Uống" as UC7
-        usecase "Xem Thống kê Doanh thu" as UC8
-    }
+    subgraph Hệ thống CyberNet
+        UC1([Đăng nhập])
+        UC2([Quản lý Máy trạm])
+        UC3([Bắt đầu / Kết thúc Phiên])
+        UC4([Quản lý Khách hàng])
+        UC5([Nạp tiền vào tài khoản])
+        UC6([Đổi thưởng bằng điểm])
+        UC7([Quản lý Đồ ăn / Uống])
+        UC8([Xem Thống kê Doanh thu])
+    end
     
     staff --> UC1
     staff --> UC2
