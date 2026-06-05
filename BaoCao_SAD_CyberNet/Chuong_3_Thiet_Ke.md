@@ -145,11 +145,11 @@ flowchart TD
     end
 
     subgraph Data_Layer [Tầng Truy cập dữ liệu - DAO Component]
-        DAO_Connection[KetNoiCSDL (Singleton)]
-        DAO_Classes[KhachHangDAO, MayTinhDAO...]
+        DAO_Connection["KetNoiCSDL (Singleton)"]
+        DAO_Classes["KhachHangDAO, MayTinhDAO..."]
     end
 
-    DB[(H2 Embedded Database)]
+    DB[("H2 Embedded Database")]
 
     UI_Login --> Ctrl_Auth
     UI_Main --> UI_Modules

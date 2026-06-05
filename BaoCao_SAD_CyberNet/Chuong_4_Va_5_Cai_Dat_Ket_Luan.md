@@ -28,9 +28,9 @@ flowchart TD
         JRE[Java Runtime Environment 17+]
         
         subgraph "Thư mục cài đặt phần mềm (App Folder)"
-            JAR([CyberNet-1.0-SNAPSHOT.jar \n Dạng Fat-JAR])
-            DB_File[(quanlyquaninternet.mv.db \n File CSDL cục bộ)]
-            Lock_File[quanlyquaninternet.lock.db]
+            JAR(["CyberNet-1.0-SNAPSHOT.jar <br> Dạng Fat-JAR"])
+            DB_File[("quanlyquaninternet.mv.db <br> File CSDL cục bộ")]
+            Lock_File["quanlyquaninternet.lock.db"]
         end
         
         JRE -->|Thực thi| JAR
