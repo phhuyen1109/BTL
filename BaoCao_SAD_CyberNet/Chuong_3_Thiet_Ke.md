@@ -1,17 +1,13 @@
 # CHƯƠNG 3: THIẾT KẾ (USE-CASE DESIGN)
 
 > **👤 PHÂN CÔNG THỰC HIỆN:**
-> - **Thành viên 1 (Trưởng nhóm, Database/Backend):** Chịu trách nhiệm toàn bộ nội dung chương này. Triển khai các Biểu đồ Lớp (Class Diagram), ERD CSDL và mô tả các ràng buộc dữ liệu.
+> - **Thành viên 1 (Trưởng nhóm, Database/Backend):** Chịu trách nhiệm toàn bộ nội dung chương này. Triển khai các Biểu đồ Lớp (Class Diagram), ERD CSDL, Sơ đồ Trạng thái (State Diagram) và Sơ đồ Thành phần (Component Diagram).
 
 ---
 
-## 3.1 Xác định các thành phần thiết kế và Class Diagram
+## 3.1 Thiết kế Sơ đồ Lớp (Class Diagram)
 
-Quá trình ánh xạ từ yêu cầu người dùng sang code Java được hiện thực hóa qua các thành phần thực thể. Chúng mang tính chất đóng gói dữ liệu (Encapsulation) thông qua các field `private` và phương thức `Getter/Setter`.
-
-### 3.1.1 Biểu đồ Lớp Đặc Tả (Class Diagram)
-
-Dưới đây là sơ đồ mô tả cấu trúc của 4 lớp thực thể trọng yếu nhất cấu thành nên phần mềm quản lý, cũng như mối quan hệ nhân quả giữa chúng.
+Sơ đồ mô tả cấu trúc của các lớp thực thể trọng yếu nhất cấu thành nên phần mềm quản lý, cũng như mối quan hệ nhân quả giữa chúng.
 
 ```mermaid
 classDiagram
@@ -63,19 +59,32 @@ classDiagram
     PhienSuDung "1" -- "0..*" DoAnUong : Gọi dịch vụ
 ```
 
-**Mô tả:**
-- Lớp `PhienSuDung` (Session) chứa thuộc tính `maKhachHang` kiểu tham chiếu tự do, nghĩa là Phiên có thể có mã khách hàng (Nếu khách có tài khoản), hoặc null (Nếu là khách vãng lai).
-- Hàm `truTien()` của `KhachHang` có khả năng trả về boolean để tự động chặn các giao dịch nếu khách không còn đủ tiền.
+---
+
+## 3.2 Sơ đồ Trạng thái (State Machine Diagram)
+
+Trong phần mềm quản lý phòng máy, thực thể `Máy Tính` sở hữu chu trình sống (lifecycle) trạng thái cực kỳ nghiêm ngặt nhằm tránh việc trùng lặp phiên (hai người ngồi một máy).
+
+```mermaid
+stateDiagram-v2
+    [*] --> TRONG : Máy vừa cài đặt / Khởi động phần mềm
+    
+    TRONG --> DANG_DUNG : Nhân viên Mở máy (Bắt đầu phiên)
+    DANG_DUNG --> DANG_DUNG : Thêm dịch vụ đồ ăn vào máy
+    
+    DANG_DUNG --> TRONG : Nhân viên Thanh toán & Đóng máy
+    
+    TRONG --> BAO_TRI : Phát hiện hỏng hóc
+    BAO_TRI --> TRONG : Sửa xong
+```
 
 ---
 
-## 3.2 Thiết kế Cơ sở dữ liệu (Database Design)
+## 3.3 Thiết kế Cơ sở dữ liệu (Database Design)
 
-Để đảm bảo hệ thống phần mềm có thể tự động chạy mà không cần setup phức tạp, nhóm đã lựa chọn kiến trúc cơ sở dữ liệu **Relational Database** tích hợp trực tiếp (H2 Engine).
+### 3.3.1 Sơ đồ Thực thể - Mối quan hệ (Entity-Relationship Diagram)
 
-### 3.2.1 Sơ đồ Thực thể - Mối quan hệ (Entity-Relationship Diagram)
-
-Dưới đây là sơ đồ ERD của toàn bộ hệ thống Database do Thành viên 1 thiết kế. 
+Sơ đồ ERD của toàn bộ hệ thống Database H2. Mối quan hệ giữa bảng gốc (KHACH_HANG, MAY_TINH, DO_AN_UONG) và bảng phát sinh (PHIEN_SU_DUNG, DON_HANG, LICH_SU_DOI_THUONG).
 
 ```mermaid
 erDiagram
@@ -84,13 +93,11 @@ erDiagram
         varchar(100) ten
         varchar(20) sdt
         double so_du
-        double tong_gio
         int diem
     }
     MAY_TINH {
         int ma PK
         varchar(50) ten
-        varchar(20) loai
         double gia_moi_gio
         varchar(20) trang_thai
     }
@@ -100,49 +107,57 @@ erDiagram
         int ma_khach_hang FK
         datetime gio_bat_dau
         datetime gio_ket_thuc
-        double tong_tien
-        varchar(20) trang_thai
     }
     DO_AN_UONG {
         int ma PK
         varchar(100) ten
         double gia
-        varchar(50) phan_loai
         int diem_doi
-        boolean con_hang
     }
     DON_HANG {
         int ma PK
         int ma_phien FK
-        datetime thoi_gian
         double tong_tien
     }
-    LICH_SU_DOI_THUONG {
-        int ma PK
-        int ma_khach_hang FK
-        int ma_do_an FK
-        datetime thoi_gian
-        int diem_da_tru
-    }
 
-    KHACH_HANG ||--o{ PHIEN_SU_DUNG : "Sở hữu"
-    MAY_TINH ||--o{ PHIEN_SU_DUNG : "Diễn ra tại"
-    PHIEN_SU_DUNG ||--o{ DON_HANG : "Phát sinh"
-    KHACH_HANG ||--o{ LICH_SU_DOI_THUONG : "Thực hiện đổi"
-    DO_AN_UONG ||--o{ LICH_SU_DOI_THUONG : "Được quy đổi"
+    KHACH_HANG ||--o{ PHIEN_SU_DUNG : "Có"
+    MAY_TINH ||--o{ PHIEN_SU_DUNG : "Tổ chức"
+    PHIEN_SU_DUNG ||--o{ DON_HANG : "Chứa"
 ```
 
-### 3.2.2 Ràng buộc toàn vẹn Dữ liệu
+---
 
-Nhằm chống lại các lỗi người dùng và sự thiếu chính xác trong quá trình tính tiền, nhóm đã cài đặt sẵn các ràng buộc (Constraints) trực tiếp vào mức thiết kế của các bảng SQL (`schema.sql`).
+## 3.4 Sơ đồ Thành phần (Component Diagram)
 
-**1. Bảng Khách Hàng (KHACH_HANG):**
-- Cột `sdt` (Số điện thoại) được gán là `UNIQUE`. Mỗi khách hàng chỉ được phép đăng ký duy nhất 1 tài khoản thông qua SĐT để ngăn chặn tài khoản rác spam lấy điểm thưởng ban đầu.
-- Cột `so_du` và `diem` mặc định (DEFAULT) luôn bắt đầu từ 0.
+Kiến trúc gói mã nguồn và sự giao tiếp giữa các thành phần nội bộ trong ứng dụng Java.
 
-**2. Bảng Máy Tính (MAY_TINH):**
-- Cột `gia_moi_gio` (Giá tiền/giờ) cài đặt `NOT NULL`.
-- Cột `trang_thai` được định sẵn các giá trị chuỗi cố định ('Trống', 'Đang dùng', 'Bảo trì'). Ở cấp độ database, điều này bảo vệ tính toàn vẹn trạng thái.
+```mermaid
+flowchart TD
+    subgraph UI_Layer [Tầng Giao Diện - View Component]
+        UI_Login[GiaoDienDangNhap]
+        UI_Main[GiaoDienChinh]
+        UI_Modules[Các Panel Chức Năng]
+    end
 
-**3. Bảng Lịch sử đổi thưởng (LICH_SU_DOI_THUONG):**
-- Bảng này đóng vai trò là "Kế toán chéo" (Audit Log). Mọi hành động làm suy giảm điểm của khách hàng (`diem_da_tru`) bắt buộc phải tạo ra 1 record liên kết với ID của món ăn (`ma_do_an`) để quản lý có thể đối soát (cross-check) vào cuối tháng xem nhân viên có gian lận điểm không.
+    subgraph Controller_Layer [Tầng Xử Lý - Controller Component]
+        Ctrl_Auth[Auth Controller]
+        Ctrl_Logic[Logic Controller]
+    end
+
+    subgraph Data_Layer [Tầng Truy cập dữ liệu - DAO Component]
+        DAO_Connection[KetNoiCSDL (Singleton)]
+        DAO_Classes[KhachHangDAO, MayTinhDAO...]
+    end
+
+    DB[(H2 Embedded Database)]
+
+    UI_Login --> Ctrl_Auth
+    UI_Main --> UI_Modules
+    UI_Modules --> Ctrl_Logic
+    
+    Ctrl_Auth --> DAO_Classes
+    Ctrl_Logic --> DAO_Classes
+    
+    DAO_Classes --> DAO_Connection
+    DAO_Connection --> DB
+```

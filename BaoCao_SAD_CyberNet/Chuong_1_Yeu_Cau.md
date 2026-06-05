@@ -31,16 +31,15 @@ Hệ thống cung cấp trải nghiệm quản lý đóng kín dành cho phía d
 - **CyberNet:** Tên chính thức của phần mềm hệ thống.
 - **Máy trạm (Client / PC):** Đơn vị phần cứng được hệ thống quản lý. Có ba trạng thái chính: Trống (Free), Đang dùng (In-use), Bảo trì (Maintenance).
 - **Phiên sử dụng (Session):** Khoảng thời gian khách hàng thực tế sử dụng dịch vụ trên máy trạm. Bắt đầu từ khi mở máy và kết thúc khi ấn tính tiền. Mọi hóa đơn phát sinh đều gắn chặt với Phiên này.
-- **Khách vãng lai (Guest):** Loại khách hàng sử dụng dịch vụ một lần, thanh toán trực tiếp khi kết thúc phiên mà không cần tạo tài khoản.
-- **Khách thành viên (Member):** Khách hàng có ID, Tên, Số dư trong hệ thống.
-- **FlatLaf:** Thư viện giao diện người dùng (UI) dành riêng cho Java Swing để mô phỏng Dark Mode hiện đại.
 
 ## 1.3 Thông số kỹ thuật bổ sung
 - **Công nghệ lưu trữ:** H2 Database dạng file nhúng (Embedded). Đảm bảo tính linh hoạt "cài đặt là chạy", không yêu cầu setup server.
 - **Bảo mật tối thiểu:** Không yêu cầu đăng ký phức tạp nhưng đòi hỏi thao tác qua lớp màn hình đăng nhập bảo vệ của nhân viên.
 - **Giao diện người dùng:** Bắt buộc áp dụng Dark mode (màu nền tối) để không gây nhức mắt cho nhân viên làm ca đêm.
 
-## 1.4 Biểu đồ Use-case Tổng Quát
+## 1.4 Biểu đồ Use-case Hệ Thống
+
+### 1.4.1 Sơ đồ Use-case Tổng Quát
 Hệ thống xoay quanh 2 tác nhân chính là Admin (Chủ quán) và Staff (Nhân viên thu ngân).
 
 ```mermaid
@@ -48,46 +47,84 @@ flowchart LR
     staff((Nhân viên))
     admin((Chủ quán))
     
-    admin -.->|"kế thừa"| staff
+    admin -.->|"Kế thừa quyền Staff"| staff
     
-    subgraph Hệ thống CyberNet
+    subgraph "Hệ thống CyberNet"
         UC1([Đăng nhập])
         UC2([Quản lý Máy trạm])
-        UC3([Bắt đầu / Kết thúc Phiên])
+        UC3([Quản lý Phiên sử dụng])
         UC4([Quản lý Khách hàng])
-        UC5([Nạp tiền vào tài khoản])
-        UC6([Đổi thưởng bằng điểm])
-        UC7([Quản lý Đồ ăn / Uống])
-        UC8([Xem Thống kê Doanh thu])
+        UC5([Quản lý Dịch vụ Đồ ăn/Uống])
+        UC6([Thống kê Báo cáo])
     end
     
     staff --> UC1
     staff --> UC2
     staff --> UC3
     staff --> UC4
-    staff --> UC5
-    staff --> UC6
     
-    admin --> UC7
-    admin --> UC8
+    admin --> UC5
+    admin --> UC6
 ```
 
-## 1.5 Mô hình hóa chức năng (Functional Modeling)
+### 1.4.2 Sơ đồ Use-case Phân rã: Quản lý Phiên (Session Management)
+Đi sâu vào chức năng mà nhân viên làm việc nhiều nhất: Quản lý phiên.
 
-### R1. Phân hệ Quản lý Phiên và Máy tính (Core Module)
-- Hiển thị danh sách toàn bộ máy tính dưới dạng lưới trực quan kèm màu sắc (Trống: Xanh, Đang dùng: Đỏ, Bảo trì: Vàng).
-- Cho phép mở một máy mới, yêu cầu gán với ID Khách hàng hoặc Đánh dấu Vãng lai.
-- Tính năng tính giờ chạy ngầm. Khi đóng phiên, tự xuất phiếu thanh toán (Tổng thời gian x Đơn giá + Tiền thức ăn).
+```mermaid
+flowchart TD
+    staff((Nhân viên))
+    
+    subgraph "Module Quản lý Phiên"
+        UC3_1([Bắt đầu phiên])
+        UC3_2([Kết thúc phiên])
+        UC3_3([Thêm đồ ăn vào phiên])
+        UC3_4([Đổi máy])
+    end
+    
+    staff --> UC3_1
+    staff --> UC3_2
+    staff --> UC3_3
+    staff --> UC3_4
+    
+    UC3_1 -.->|<< include >>| UC_CheckStatus([Kiểm tra máy Trống])
+    UC3_2 -.->|<< include >>| UC_CalMoney([Tính toán tổng tiền])
+```
 
-### R2. Phân hệ Quản lý Khách hàng và Khuyến mãi
-- Lưu trữ Tên, SĐT, Số dư (Ví ảo), Tổng giờ chơi, và Điểm thưởng.
-- Tự động cộng điểm thưởng mỗi khi khách hàng nạp tiền thành công (Tỷ lệ: 10,000 VND = 1 Điểm).
-- Cho phép khách hàng sử dụng điểm này để đổi miễn phí 1 món đồ uống dựa trên Menu có sẵn.
+## 1.5 Sơ đồ Hoạt động (Activity Diagram)
 
-### R3. Phân hệ Thống kê (Chỉ dành cho Admin)
-- Tổng hợp tổng số giờ chơi toàn hệ thống trong ngày.
-- Thống kê doanh thu từ Máy tính vs Doanh thu từ Dịch vụ (Đồ ăn/uống).
-- Hiển thị biểu đồ hình cột so sánh doanh thu các ngày trong tuần.
+Sơ đồ quy trình nghiệp vụ tổng quát khi một khách hàng bước vào quán chơi và thanh toán.
+
+```mermaid
+stateDiagram-v2
+    [*] --> KhachVao: Khách hàng bước vào
+    KhachVao --> CheckTK: Khách có tài khoản chưa?
+    
+    CheckTK --> TaoTK: Chưa có (Muốn tạo)
+    TaoTK --> NapTien
+    
+    CheckTK --> KhachVangLai: Không muốn tạo (Khách vãng lai)
+    KhachVangLai --> MoMay
+    
+    CheckTK --> NapTien: Đã có tài khoản
+    
+    NapTien --> MoMay: Nhân viên kích hoạt máy
+    MoMay --> KhachChoi: Máy đổi trạng thái 'Đang dùng'
+    
+    state KhachChoi {
+        [*] --> ChoiGame
+        ChoiGame --> GoiMon: Khách đói/khát
+        GoiMon --> ChoiGame: Nhân viên mang đồ tới
+    }
+    
+    KhachChoi --> DongMay: Khách báo nghỉ
+    DongMay --> TinhTien: Hệ thống tự chốt bill (Tiền giờ + Tiền đồ ăn)
+    
+    TinhTien --> ThanhToanTK: Nếu là Khách thành viên (Trừ tiền tự động)
+    TinhTien --> ThanhToanMat: Nếu là Khách vãng lai (Thu tiền mặt)
+    
+    ThanhToanTK --> [*]
+    ThanhToanMat --> [*]
+```
 
 ## 1.6 Đặc tả Use-case Chi tiết (Use-case Specifications)
 
@@ -95,19 +132,14 @@ flowchart LR
 | **Thuộc tính** | **Mô tả** |
 |---|---|
 | **Tên Use-case** | Bắt đầu Phiên sử dụng (Open Session) |
-| **Mã UC** | UC-01 |
 | **Tác nhân** | Nhân viên thu ngân |
-| **Mục đích** | Kích hoạt máy trạm cho khách hàng sử dụng và bắt đầu tính tiền giờ. |
 | **Tiền điều kiện**| Nhân viên phải đăng nhập thành công. Máy trạm được chọn phải ở trạng thái "Trống" (Free). |
 | **Luồng sự kiện chính**| 1. Nhân viên nhấn đúp vào biểu tượng của máy trạm đang Trống trên màn hình chính.<br>2. Hệ thống hiển thị hộp thoại pop-up "Mở máy".<br>3. Nhân viên chọn loại hình: "Khách vãng lai" hoặc tìm kiếm tên "Khách thành viên".<br>4. Nhân viên nhấn nút [Xác nhận Bắt đầu].<br>5. Hệ thống ghi nhận thời gian `gioBatDau`, tạo record mới trong bảng `PHIEN_SU_DUNG`.<br>6. Hệ thống chuyển màu máy sang Đỏ (Đang dùng) và báo thành công. |
 | **Luồng thay thế**| Nếu chọn Khách thành viên nhưng số dư ví của khách nhỏ hơn 0, hệ thống cảnh báo và yêu cầu nạp tiền trước khi mở máy. |
-| **Hậu điều kiện** | Máy tính chuyển sang "Đang dùng", không ai có thể mở đè lên máy này nữa. |
 
 ### 1.6.2 Đặc tả UC-02: Nạp tiền cho Khách hàng
 | **Thuộc tính** | **Mô tả** |
 |---|---|
 | **Tên Use-case** | Nạp tiền vào tài khoản (Deposit Money) |
-| **Mã UC** | UC-02 |
 | **Tác nhân** | Nhân viên thu ngân |
-| **Luồng sự kiện chính**| 1. Khách hàng cung cấp tên đăng nhập hoặc ID tại quầy và đưa tiền mặt.<br>2. Nhân viên vào tab "Khách hàng", chọn người dùng, nhấn [Nạp tiền].<br>3. Hệ thống hiển thị form yêu cầu nhập mệnh giá VND (Ví dụ: 100000).<br>4. Nhân viên nhập số tiền, hệ thống tự động preview sẽ được cộng bao nhiêu Giờ (VD: 10h) và bao nhiêu Điểm thưởng (VD: 10 điểm).<br>5. Nhân viên ấn [Xác nhận]. Hệ thống lưu thông tin vào cơ sở dữ liệu và hiện thông báo thành công. |
-| **Luồng lỗi**| - Nhân viên nhập số tiền là chữ cái hoặc số âm: Báo lỗi "Vui lòng nhập số tiền hợp lệ".<br>- Khách hàng không tồn tại trong hệ thống: Báo lỗi không tìm thấy ID. |
+| **Luồng sự kiện chính**| 1. Khách hàng cung cấp tên đăng nhập hoặc ID tại quầy và đưa tiền mặt.<br>2. Nhân viên vào tab "Khách hàng", chọn người dùng, nhấn [Nạp tiền].<br>3. Hệ thống hiển thị form yêu cầu nhập mệnh giá VND.<br>4. Hệ thống tự động preview sẽ được cộng bao nhiêu Giờ và bao nhiêu Điểm thưởng.<br>5. Nhân viên ấn [Xác nhận]. Hệ thống lưu thông tin. |
