@@ -1,90 +1,148 @@
 # CHƯƠNG 3: THIẾT KẾ (USE-CASE DESIGN)
 
-> **👤 PHÂN CÔNG THỰC HIỆN CHƯƠNG NÀY:**
-> - **Thành viên 1 (Trưởng nhóm, Backend/Database):** Chịu trách nhiệm toàn bộ nội dung chương này. Vẽ sơ đồ Lớp (Class Diagram), thiết kế cơ sở dữ liệu, các bảng và định nghĩa ràng buộc.
+> **👤 PHÂN CÔNG THỰC HIỆN:**
+> - **Thành viên 1 (Trưởng nhóm, Database/Backend):** Chịu trách nhiệm toàn bộ nội dung chương này. Triển khai các Biểu đồ Lớp (Class Diagram), ERD CSDL và mô tả các ràng buộc dữ liệu.
 
 ---
 
-## 3.1 Xác định các thành phần thiết kế (Identify design elements)
+## 3.1 Xác định các thành phần thiết kế và Class Diagram
 
-### 3.1.1 Xác định các lớp (Identify classes)
-Hệ thống sử dụng các Lớp thực thể (Entity Classes) phản ánh trực tiếp logic nghiệp vụ:
-- `NguoiDung`: Chứa `id, username, password, role`.
-- `KhachHang`: Chứa `id, ten, sdt, soDu, tongGio, diem`.
-- `MayTinh`: Chứa `id, ten, loai, giaMoiGio, trangThai`.
-- `PhienSuDung`: Chứa `id, maMayTinh, maKhachHang, gioBatDau, gioKetThuc, tongTien`.
-- `DoAnUong`: Chứa `id, ten, gia, phanLoai, diemDoi, conHang`.
-- Lớp Service/DAO: `KetNoiCSDL` (Singleton Connection), `KhachHangDAO`, `MayTinhDAO`, `PhienSuDungDAO`.
+Quá trình ánh xạ từ yêu cầu người dùng sang code Java được hiện thực hóa qua các thành phần thực thể. Chúng mang tính chất đóng gói dữ liệu (Encapsulation) thông qua các field `private` và phương thức `Getter/Setter`.
 
-### 3.1.2 Xác định các hệ thống con và giao diện (Identify subsystems and interfaces)
-- Hệ thống con **Xác thực (Auth):** Chịu trách nhiệm quản lý đăng nhập, session của nhân viên (Admin/Staff).
-- Hệ thống con **Cốt lõi (Core Business):** Quản lý phiên sử dụng, bật tắt máy.
-- Hệ thống con **Kế toán (Accounting):** Tính toán giờ chơi, trừ tiền, quản lý đơn hàng dịch vụ, thống kê doanh thu.
+### 3.1.1 Biểu đồ Lớp Đặc Tả (Class Diagram)
 
-### 3.1.3 Xác định các gói (Identify packages)
-Cấu trúc mã nguồn được phân bổ vào các package chính để tuân thủ MVC:
-- `com.mycompany.quanlyquaninternet.entity`: Chứa các lớp Model/Entity.
-- `com.mycompany.quanlyquaninternet.dao`: Chứa các lớp xử lý CSDL.
-- `com.mycompany.quanlyquaninternet.controller`: Chứa bộ điều khiển.
-- `com.mycompany.quanlyquaninternet.view`: Chứa các cửa sổ, Panel giao diện.
+Dưới đây là sơ đồ mô tả cấu trúc của 4 lớp thực thể trọng yếu nhất cấu thành nên phần mềm quản lý, cũng như mối quan hệ nhân quả giữa chúng.
+
+```mermaid
+classDiagram
+    class MayTinh {
+        -int ma
+        -String ten
+        -String loai
+        -double giaMoiGio
+        -String trangThai
+        +getMa() int
+        +getGiaMoiGio() double
+        +setTrangThai(String) void
+    }
+
+    class KhachHang {
+        -int ma
+        -String ten
+        -String sdt
+        -double soDu
+        -double tongGio
+        -int diem
+        +truTien(double) boolean
+        +congDiem(int) void
+    }
+
+    class PhienSuDung {
+        -int ma
+        -int maMayTinh
+        -Integer maKhachHang
+        -Date gioBatDau
+        -Date gioKetThuc
+        -double tongTien
+        -String trangThai
+        +tinhTien(double giaMay) double
+        +ketThucPhien() void
+    }
+
+    class DoAnUong {
+        -int ma
+        -String ten
+        -double gia
+        -String phanLoai
+        -int diemDoi
+        -boolean conHang
+    }
+
+    KhachHang "1" -- "0..*" PhienSuDung : Thực hiện
+    MayTinh "1" -- "0..*" PhienSuDung : Lưu vết qua
+    PhienSuDung "1" -- "0..*" DoAnUong : Gọi dịch vụ
+```
+
+**Mô tả:**
+- Lớp `PhienSuDung` (Session) chứa thuộc tính `maKhachHang` kiểu tham chiếu tự do, nghĩa là Phiên có thể có mã khách hàng (Nếu khách có tài khoản), hoặc null (Nếu là khách vãng lai).
+- Hàm `truTien()` của `KhachHang` có khả năng trả về boolean để tự động chặn các giao dịch nếu khách không còn đủ tiền.
 
 ---
 
-## 3.2 Thiết kế trường hợp sử dụng (Use-case design)
+## 3.2 Thiết kế Cơ sở dữ liệu (Database Design)
 
-### 3.2.1 Thiết kế các biểu đồ tuần tự (Design sequence diagrams)
-*(Dựa trên biểu đồ tuần tự đã phân tích ở Chương 2, đi sâu hơn vào việc bổ sung các hàm, tham số cụ thể của từng lớp sẽ được truyền đi - Thành viên 1 sẽ vẽ sơ đồ này)*
+Để đảm bảo hệ thống phần mềm có thể tự động chạy mà không cần setup phức tạp, nhóm đã lựa chọn kiến trúc cơ sở dữ liệu **Relational Database** tích hợp trực tiếp (H2 Engine).
 
-### 3.2.2 Thiết kế biểu đồ lớp (Class diagrams)
-*(Thành viên 1 chèn Class Diagram thể hiện quan hệ kế thừa, liên kết, dependency giữa các lớp Entity, DAO và View)*
+### 3.2.1 Sơ đồ Thực thể - Mối quan hệ (Entity-Relationship Diagram)
 
----
+Dưới đây là sơ đồ ERD của toàn bộ hệ thống Database do Thành viên 1 thiết kế. 
 
-## 3.3 Thiết kế cơ sở dữ liệu (Database design)
+```mermaid
+erDiagram
+    KHACH_HANG {
+        int ma PK
+        varchar(100) ten
+        varchar(20) sdt
+        double so_du
+        double tong_gio
+        int diem
+    }
+    MAY_TINH {
+        int ma PK
+        varchar(50) ten
+        varchar(20) loai
+        double gia_moi_gio
+        varchar(20) trang_thai
+    }
+    PHIEN_SU_DUNG {
+        int ma PK
+        int ma_may_tinh FK
+        int ma_khach_hang FK
+        datetime gio_bat_dau
+        datetime gio_ket_thuc
+        double tong_tien
+        varchar(20) trang_thai
+    }
+    DO_AN_UONG {
+        int ma PK
+        varchar(100) ten
+        double gia
+        varchar(50) phan_loai
+        int diem_doi
+        boolean con_hang
+    }
+    DON_HANG {
+        int ma PK
+        int ma_phien FK
+        datetime thoi_gian
+        double tong_tien
+    }
+    LICH_SU_DOI_THUONG {
+        int ma PK
+        int ma_khach_hang FK
+        int ma_do_an FK
+        datetime thoi_gian
+        int diem_da_tru
+    }
 
-### 3.3.1 Lược đồ cơ sở dữ liệu (ERD)
-*(Thành viên 1 vẽ sơ đồ Entity Relationship Diagram cho 8 bảng: NGUOI_DUNG, KHACH_HANG, MAY_TINH, PHIEN_SU_DUNG, DO_AN_UONG, DON_HANG, CHI_TIET_DON_HANG, LICH_SU_DOI_THUONG)*
+    KHACH_HANG ||--o{ PHIEN_SU_DUNG : "Sở hữu"
+    MAY_TINH ||--o{ PHIEN_SU_DUNG : "Diễn ra tại"
+    PHIEN_SU_DUNG ||--o{ DON_HANG : "Phát sinh"
+    KHACH_HANG ||--o{ LICH_SU_DOI_THUONG : "Thực hiện đổi"
+    DO_AN_UONG ||--o{ LICH_SU_DOI_THUONG : "Được quy đổi"
+```
 
-### 3.3.2 Chi tiết các bảng
+### 3.2.2 Ràng buộc toàn vẹn Dữ liệu
 
-**Bảng 1: KHACH_HANG**
-| Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|---|---|---|---|
-| ma | INT | PK, AUTO_INCREMENT | Khóa chính |
-| ten | VARCHAR(100) | NOT NULL | Tên khách hàng |
-| sdt | VARCHAR(20) | NULL | Số điện thoại liên hệ |
-| so_du | DOUBLE | DEFAULT 0 | Tiền thực tế nạp vào |
-| tong_gio | DOUBLE | DEFAULT 0 | Tổng giờ chơi khách có |
-| diem | INT | DEFAULT 0 | Điểm tích lũy để đổi đồ |
+Nhằm chống lại các lỗi người dùng và sự thiếu chính xác trong quá trình tính tiền, nhóm đã cài đặt sẵn các ràng buộc (Constraints) trực tiếp vào mức thiết kế của các bảng SQL (`schema.sql`).
 
-**Bảng 2: MAY_TINH**
-| Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|---|---|---|---|
-| ma | INT | PK, AUTO_INCREMENT | Khóa chính |
-| ten | VARCHAR(50) | NOT NULL | Tên máy (VD: Máy 01) |
-| loai | VARCHAR(20) | DEFAULT 'Thường' | Phân loại máy (VIP/Thường) |
-| gia_moi_gio | DOUBLE | NOT NULL | Giá tiền 1 giờ chơi |
-| trang_thai | VARCHAR(20) | DEFAULT 'Trống' | Trống/Đang dùng/Bảo trì |
+**1. Bảng Khách Hàng (KHACH_HANG):**
+- Cột `sdt` (Số điện thoại) được gán là `UNIQUE`. Mỗi khách hàng chỉ được phép đăng ký duy nhất 1 tài khoản thông qua SĐT để ngăn chặn tài khoản rác spam lấy điểm thưởng ban đầu.
+- Cột `so_du` và `diem` mặc định (DEFAULT) luôn bắt đầu từ 0.
 
-**Bảng 3: PHIEN_SU_DUNG**
-| Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|---|---|---|---|
-| ma | INT | PK, AUTO_INCREMENT | Khóa chính |
-| ma_may_tinh | INT | FK | ID Máy tính |
-| ma_khach_hang | INT | FK, NULL | ID Khách (Null = vãng lai) |
-| gio_bat_dau | DATETIME | NOT NULL | Thời gian mở máy |
-| gio_ket_thuc | DATETIME | NULL | Thời gian đóng máy |
-| tong_tien | DOUBLE | DEFAULT 0 | Tiền thực thu từ phiên |
-| trang_thai | VARCHAR(20) | DEFAULT 'Đang chạy'| Trạng thái phiên |
+**2. Bảng Máy Tính (MAY_TINH):**
+- Cột `gia_moi_gio` (Giá tiền/giờ) cài đặt `NOT NULL`.
+- Cột `trang_thai` được định sẵn các giá trị chuỗi cố định ('Trống', 'Đang dùng', 'Bảo trì'). Ở cấp độ database, điều này bảo vệ tính toàn vẹn trạng thái.
 
-**Bảng 4: DO_AN_UONG (MENU)**
-| Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
-|---|---|---|---|
-| ma | INT | PK, AUTO_INCREMENT | Khóa chính |
-| ten | VARCHAR(100) | NOT NULL | Tên món ăn/đồ uống |
-| gia | DOUBLE | NOT NULL | Giá bán ra |
-| phan_loai | VARCHAR(50) | | Đồ ăn / Nước uống |
-| diem_doi | INT | DEFAULT 0 | Số điểm yêu cầu để đổi free |
-| con_hang | BOOLEAN | DEFAULT TRUE | Tình trạng phục vụ |
-
-*(Các bảng khác như NGUOI_DUNG, DON_HANG, LICH_SU_DOI_THUONG, Thành viên 1 bổ sung thêm dựa trên schema.sql)*
+**3. Bảng Lịch sử đổi thưởng (LICH_SU_DOI_THUONG):**
+- Bảng này đóng vai trò là "Kế toán chéo" (Audit Log). Mọi hành động làm suy giảm điểm của khách hàng (`diem_da_tru`) bắt buộc phải tạo ra 1 record liên kết với ID của món ăn (`ma_do_an`) để quản lý có thể đối soát (cross-check) vào cuối tháng xem nhân viên có gian lận điểm không.

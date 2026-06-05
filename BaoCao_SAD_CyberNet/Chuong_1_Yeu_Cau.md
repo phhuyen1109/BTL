@@ -1,119 +1,113 @@
 # CHƯƠNG 1: YÊU CẦU (REQUIREMENTS)
 
-> **👤 PHÂN CÔNG THỰC HIỆN CHƯƠNG NÀY:**
-> - **Thành viên 2 (UI/UX, Frontend):** Chịu trách nhiệm viết mục 1.1, 1.2, 1.3 và vẽ các Mockup Giao diện đính kèm ở 1.6.
-> - **Thành viên 3 (BA, Phân tích nghiệp vụ):** Chịu trách nhiệm viết mục 1.4, 1.5, và đặc tả chi tiết các Use-case tại 1.6.
+> **👤 PHÂN CÔNG THỰC HIỆN:**
+> - **Thành viên 2 (UI/UX, Frontend):** Chịu trách nhiệm mục 1.1, 1.2, 1.3 và vẽ Mockup Giao diện (Giao diện wireframe sẽ được team tự chụp từ ứng dụng Java Swing đang chạy đính kèm vào word).
+> - **Thành viên 3 (BA, Phân tích nghiệp vụ):** Chịu trách nhiệm thiết kế mục 1.4, 1.5, biểu đồ Use-case hệ thống và bảng đặc tả chi tiết 1.6.
 
 ---
 
 ## 1.1 Đặt vấn đề (Problem statement)
-**(👤 Người viết: Thành viên 2)**
 
-### 1.1.1 Bối cảnh
-Hiện nay, việc kinh doanh các điểm truy cập Internet (Cyber Game, Quán Net) ngày càng phát triển. Tuy nhiên, quy trình quản lý giờ chơi, thanh toán tiền giờ, gọi đồ ăn thức uống ở nhiều quán vẫn còn thủ công hoặc sử dụng các hệ thống rời rạc, dẫn đến sai sót, thất thoát doanh thu và trải nghiệm khách hàng không tốt.
+### 1.1.1 Bối cảnh hiện tại
+Hiện nay, sự phát triển mạnh mẽ của thể thao điện tử (Esports) và nhu cầu giải trí số đã thúc đẩy sự ra đời của rất nhiều các chuỗi hệ thống phòng máy tính (Cyber Game, Quán Net). Tuy nhiên, tại các phòng máy quy mô vừa và nhỏ, chủ quán thường quản lý thời gian sử dụng, bán thức ăn đồ uống và thống kê doanh thu thông qua sổ sách thủ công hoặc các công cụ không chuyên biệt như Excel. Điều này dẫn đến nhiều hệ lụy tiêu cực:
+1. Tính toán sai sót thời gian sử dụng của khách hàng.
+2. Thất thoát doanh thu bán dịch vụ (đồ ăn, nước uống) do thu ngân không ghi chép đầy đủ.
+3. Việc quản lý các máy tính hỏng hóc hoặc đang trong quá trình bảo trì gặp nhiều khó khăn.
+4. Trải nghiệm của khách hàng không được tối ưu khi không có hệ thống tích lũy điểm thưởng kích cầu.
 
-### 1.1.2 Mục tiêu
-Xây dựng một phần mềm quản lý quán Internet (CyberNet) tập trung, tự động hóa toàn bộ quy trình: từ việc cấp phát máy, tính giờ, quản lý nạp tiền, gọi đồ ăn thức uống, cho đến thống kê doanh thu. Hệ thống giúp tối ưu hóa nhân sự và mang lại tính minh bạch cao.
+### 1.1.2 Mục tiêu của dự án
+Dự án "Quản lý quán Internet CyberNet" được xây dựng nhằm mục đích cung cấp một giải pháp phần mềm toàn diện, cài đặt trực tiếp tại quầy thu ngân (Local) với các mục tiêu cốt lõi:
+- **Tự động hóa hoàn toàn logic tính giờ:** Tự động quy đổi số tiền nạp sang số giờ chơi tương ứng dựa trên giá niêm yết của từng máy.
+- **Tích hợp quản lý Dịch vụ:** Cung cấp tính năng gọi đồ ăn uống nhanh gọn, tự động cộng dồn vào hóa đơn thanh toán cuối phiên.
+- **Xây dựng chương trình thành viên (Loyalty Program):** Tạo tài khoản cho khách quen, lưu trữ số dư ví ảo và tích lũy điểm thưởng qua mỗi lần nạp tiền. Khách có thể dùng điểm để đổi các dịch vụ miễn phí.
+- **Trực quan hóa dữ liệu thống kê:** Thiết lập Dashboard tổng quan cho phép chủ quán dễ dàng theo dõi số lượng phiên sử dụng, hiệu suất phục vụ và tổng doanh thu.
 
-### 1.1.3 Người dùng mục tiêu
-- **Quản lý / Chủ quán (Admin):** Nắm quyền cao nhất, quản lý toàn bộ hệ thống, xem thống kê, quản lý nhân viên, và thêm/sửa/xóa dịch vụ.
-- **Nhân viên thu ngân (Staff):** Tạo/kết thúc phiên máy, nạp tiền cho khách, bán đồ ăn uống, đổi thưởng.
-- **Khách hàng (Customer):** (Không tác động trực tiếp vào hệ thống quản lý) Sở hữu tài khoản tích điểm, số dư để chơi và mua đồ.
-
-### 1.1.4 Lợi ích khi sử dụng phần mềm
-- Giảm thiểu sai sót tính toán tiền giờ và tiền dịch vụ.
-- Cải thiện tốc độ phục vụ đồ ăn/uống cho khách.
-- Khuyến khích khách hàng nạp nhiều tiền thông qua cơ chế tích điểm - đổi thưởng.
-- Dễ dàng thống kê, xuất báo cáo cho quản lý vào cuối ngày/tuần.
-
-### 1.1.5 Phạm vi của dự án
-- **Trong phạm vi:** Quản lý tài khoản đăng nhập; Quản lý thông tin và trạng thái Máy tính; Quản lý thông tin, số dư, điểm của Khách hàng; Quản lý phiên sử dụng; Quản lý Menu (đồ ăn/uống) và hóa đơn dịch vụ; Thống kê doanh thu.
-- **Ngoài phạm vi:** Hệ thống không xử lý khóa màn hình máy trạm (Client) trực tiếp như phần mềm CSM/Gcafe mà chỉ quản lý logic tính giờ trên máy chủ; Không kết nối trực tiếp cổng thanh toán ngân hàng (chỉ ghi nhận nạp tiền mặt).
+### 1.1.3 Phân tích đối tượng người dùng
+Hệ thống cung cấp trải nghiệm quản lý đóng kín dành cho phía doanh nghiệp vận hành.
+- **Nhân viên thu ngân (Staff):** Người trực tiếp thao tác với phần mềm nhiều nhất (90% thời gian). Nhiệm vụ bao gồm mở máy cho khách, theo dõi phiên, thanh toán và xử lý đơn hàng gọi đồ. Yêu cầu giao diện phải nhanh, phím tắt linh hoạt, giảm thiểu số lần click chuột.
+- **Người quản lý / Chủ quán (Admin):** Người nắm toàn quyền hệ thống. Được cấp quyền truy cập tính năng Thống kê, xuất biểu đồ doanh thu cuối ngày, và quản lý (thêm/sửa/xóa) danh mục dịch vụ cũng như thiết lập giá máy.
 
 ## 1.2 Thuật ngữ (Glossary)
-**(👤 Người viết: Thành viên 2)**
-- **CyberNet:** Tên của hệ thống phần mềm quản lý.
-- **Máy trạm (Client):** Máy tính dành cho khách hàng sử dụng dịch vụ.
-- **Phiên sử dụng (Session):** Khoảng thời gian từ lúc khách bắt đầu mở máy chơi đến khi kết thúc đóng máy tính tiền.
-- **Khách vãng lai:** Khách không có tài khoản, chơi trả tiền trực tiếp.
-- **Điểm tích lũy:** Điểm thưởng khách nhận được khi nạp tiền/chơi giờ, dùng để đổi dịch vụ miễn phí.
-- **Menu/Dịch vụ:** Đồ ăn và thức uống bán kèm tại quán.
-- **FlatLaf:** Thư viện giao diện Java được sử dụng để làm đẹp ứng dụng (Dark theme).
-- **Fat-JAR:** Định dạng đóng gói ứng dụng Java chứa luôn toàn bộ thư viện bên trong để dễ dàng thực thi.
-- **H2 Database:** Hệ quản trị cơ sở dữ liệu nhúng siêu nhẹ được tích hợp thẳng vào phần mềm.
+- **CyberNet:** Tên chính thức của phần mềm hệ thống.
+- **Máy trạm (Client / PC):** Đơn vị phần cứng được hệ thống quản lý. Có ba trạng thái chính: Trống (Free), Đang dùng (In-use), Bảo trì (Maintenance).
+- **Phiên sử dụng (Session):** Khoảng thời gian khách hàng thực tế sử dụng dịch vụ trên máy trạm. Bắt đầu từ khi mở máy và kết thúc khi ấn tính tiền. Mọi hóa đơn phát sinh đều gắn chặt với Phiên này.
+- **Khách vãng lai (Guest):** Loại khách hàng sử dụng dịch vụ một lần, thanh toán trực tiếp khi kết thúc phiên mà không cần tạo tài khoản.
+- **Khách thành viên (Member):** Khách hàng có ID, Tên, Số dư trong hệ thống.
+- **FlatLaf:** Thư viện giao diện người dùng (UI) dành riêng cho Java Swing để mô phỏng Dark Mode hiện đại.
 
 ## 1.3 Thông số kỹ thuật bổ sung
-**(👤 Người viết: Thành viên 2)**
-- **Hiệu năng:** Ứng dụng phải mở nhanh dưới 3 giây, thao tác chuyển đổi panel không bị giật lag.
-- **Lưu trữ:** Sử dụng CSDL H2, tự động sinh file DB lưu nội bộ, không phụ thuộc vào server ngoại vi.
-- **Khả năng tự động hóa:** Dashboard và danh sách Phiên sử dụng phải tự động làm mới (Auto-refresh) mỗi 30 giây để cập nhật thời gian thực.
-- **Tính tiện dụng:** Giao diện Dark mode chống mỏi mắt cho nhân viên làm ca đêm.
+- **Công nghệ lưu trữ:** H2 Database dạng file nhúng (Embedded). Đảm bảo tính linh hoạt "cài đặt là chạy", không yêu cầu setup server.
+- **Bảo mật tối thiểu:** Không yêu cầu đăng ký phức tạp nhưng đòi hỏi thao tác qua lớp màn hình đăng nhập bảo vệ của nhân viên.
+- **Giao diện người dùng:** Bắt buộc áp dụng Dark mode (màu nền tối) để không gây nhức mắt cho nhân viên làm ca đêm.
 
-## 1.4 Mô hình hóa quy trình nghiệp vụ
-**(👤 Người viết: Thành viên 3)**
+## 1.4 Biểu đồ Use-case Tổng Quát
+Hệ thống xoay quanh 2 tác nhân chính là Admin (Chủ quán) và Staff (Nhân viên thu ngân).
 
-### 1.4.1 Quy trình Quản lý khách hàng sử dụng máy
-1. Khách hàng tới quán, chọn máy trống.
-2. Nhân viên mở phần mềm, chọn máy đó, khởi tạo "Phiên sử dụng".
-3. Nhân viên chọn phân loại: Khách vãng lai (không trừ tiền số dư) hoặc Khách thành viên (nhập tên/SĐT để trừ tiền tự động).
-4. Hệ thống cập nhật trạng thái máy thành "Đang dùng", tính giờ.
-5. Khi khách nghỉ, nhân viên chọn "Kết thúc phiên", hệ thống tự động cộng dồn tiền máy và tiền dịch vụ (nếu có).
+```mermaid
+usecaseDiagram
+    actor "Nhân viên (Staff)" as staff
+    actor "Chủ quán (Admin)" as admin
+    
+    admin <|-- staff : "kế thừa quyền"
+    
+    package "Hệ thống CyberNet" {
+        usecase "Đăng nhập" as UC1
+        usecase "Quản lý Máy trạm" as UC2
+        usecase "Bắt đầu / Kết thúc Phiên" as UC3
+        usecase "Quản lý Khách hàng" as UC4
+        usecase "Nạp tiền vào tài khoản" as UC5
+        usecase "Đổi thưởng bằng điểm" as UC6
+        usecase "Quản lý Đồ ăn / Uống" as UC7
+        usecase "Xem Thống kê Doanh thu" as UC8
+    }
+    
+    staff --> UC1
+    staff --> UC2
+    staff --> UC3
+    staff --> UC4
+    staff --> UC5
+    staff --> UC6
+    
+    admin --> UC7
+    admin --> UC8
+```
 
-### 1.4.2 Quy trình Nạp tiền và Đổi thưởng
-1. Khách hàng yêu cầu nạp tiền vào tài khoản.
-2. Nhân viên chọn tài khoản, nhập số tiền. Hệ thống quy đổi số tiền ra Giờ chơi và Điểm tích lũy theo tỷ lệ 10.000đ = 1 Giờ = 1 Điểm.
-3. Nếu khách muốn đổi thưởng đồ ăn/uống, nhân viên mở form "Đổi thưởng", hệ thống kiểm tra điểm của khách, trừ điểm và lưu lịch sử nếu đủ điểm.
+## 1.5 Mô hình hóa chức năng (Functional Modeling)
 
-## 1.5 Mô hình hóa chức năng
-**(👤 Người viết: Thành viên 3)**
+### R1. Phân hệ Quản lý Phiên và Máy tính (Core Module)
+- Hiển thị danh sách toàn bộ máy tính dưới dạng lưới trực quan kèm màu sắc (Trống: Xanh, Đang dùng: Đỏ, Bảo trì: Vàng).
+- Cho phép mở một máy mới, yêu cầu gán với ID Khách hàng hoặc Đánh dấu Vãng lai.
+- Tính năng tính giờ chạy ngầm. Khi đóng phiên, tự xuất phiếu thanh toán (Tổng thời gian x Đơn giá + Tiền thức ăn).
 
-### 1.5.1 Các yêu cầu chức năng
-**R1. Quản lý Hệ thống & Tài khoản**
-- R1.1 Đăng nhập hệ thống.
-- R1.2 Xem Dashboard tổng quan (Máy trống, Đang dùng, Tổng phiên, Tổng doanh thu ngày).
+### R2. Phân hệ Quản lý Khách hàng và Khuyến mãi
+- Lưu trữ Tên, SĐT, Số dư (Ví ảo), Tổng giờ chơi, và Điểm thưởng.
+- Tự động cộng điểm thưởng mỗi khi khách hàng nạp tiền thành công (Tỷ lệ: 10,000 VND = 1 Điểm).
+- Cho phép khách hàng sử dụng điểm này để đổi miễn phí 1 món đồ uống dựa trên Menu có sẵn.
 
-**R2. Quản lý Máy tính**
-- R2.1 Xem danh sách máy tính và trạng thái.
-- R2.2 Mở / Đóng phiên sử dụng trên một máy tính.
+### R3. Phân hệ Thống kê (Chỉ dành cho Admin)
+- Tổng hợp tổng số giờ chơi toàn hệ thống trong ngày.
+- Thống kê doanh thu từ Máy tính vs Doanh thu từ Dịch vụ (Đồ ăn/uống).
+- Hiển thị biểu đồ hình cột so sánh doanh thu các ngày trong tuần.
 
-**R3. Quản lý Khách hàng**
-- R3.1 Thêm, sửa, xóa khách hàng.
-- R3.2 Nạp tiền và tự động cộng giờ/điểm.
-- R3.3 Đổi thưởng đồ ăn/uống bằng điểm.
+## 1.6 Đặc tả Use-case Chi tiết (Use-case Specifications)
 
-**R4. Quản lý Dịch vụ (Đồ ăn/uống)**
-- R4.1 Quản lý danh mục sản phẩm (CRUD).
-- R4.2 Thêm đơn hàng dịch vụ vào phiên đang chạy của khách.
+### 1.6.1 Đặc tả UC-01: Bắt đầu Phiên sử dụng
+| **Thuộc tính** | **Mô tả** |
+|---|---|
+| **Tên Use-case** | Bắt đầu Phiên sử dụng (Open Session) |
+| **Mã UC** | UC-01 |
+| **Tác nhân** | Nhân viên thu ngân |
+| **Mục đích** | Kích hoạt máy trạm cho khách hàng sử dụng và bắt đầu tính tiền giờ. |
+| **Tiền điều kiện**| Nhân viên phải đăng nhập thành công. Máy trạm được chọn phải ở trạng thái "Trống" (Free). |
+| **Luồng sự kiện chính**| 1. Nhân viên nhấn đúp vào biểu tượng của máy trạm đang Trống trên màn hình chính.<br>2. Hệ thống hiển thị hộp thoại pop-up "Mở máy".<br>3. Nhân viên chọn loại hình: "Khách vãng lai" hoặc tìm kiếm tên "Khách thành viên".<br>4. Nhân viên nhấn nút [Xác nhận Bắt đầu].<br>5. Hệ thống ghi nhận thời gian `gioBatDau`, tạo record mới trong bảng `PHIEN_SU_DUNG`.<br>6. Hệ thống chuyển màu máy sang Đỏ (Đang dùng) và báo thành công. |
+| **Luồng thay thế**| Nếu chọn Khách thành viên nhưng số dư ví của khách nhỏ hơn 0, hệ thống cảnh báo và yêu cầu nạp tiền trước khi mở máy. |
+| **Hậu điều kiện** | Máy tính chuyển sang "Đang dùng", không ai có thể mở đè lên máy này nữa. |
 
-**R5. Thống kê Báo cáo**
-- R5.1 Xem bảng thống kê số phiên và doanh thu theo ngày.
-- R5.2 Hiển thị biểu đồ cột doanh thu trực quan.
-
-### 1.5.2 Sơ đồ Use-case
-*(Thành viên 3 vẽ sơ đồ Use-case tổng quát và chèn hình ảnh vào đây)*
-- Admin (Nhân viên) tương tác với Đăng nhập, Quản lý Khách hàng, Quản lý Máy, Quản lý Dịch vụ, Quản lý Phiên, Thống kê.
-
-## 1.6 Đặc tả các Use-case
-**(👤 Người viết: Thành viên 3 viết text, Thành viên 2 chèn ảnh Mockup giao diện minh họa)**
-
-### 1.6.1 UC-01: Bắt đầu phiên sử dụng
-- **Tác nhân:** Nhân viên.
-- **Tiền điều kiện:** Nhân viên đã đăng nhập, Máy tính đang ở trạng thái "Trống".
-- **Luồng thông thường:**
-  1. Nhân viên nhấn đúp vào máy "Trống".
-  2. Hệ thống hiển thị hộp thoại Bắt đầu phiên.
-  3. Nhân viên chọn Khách có tài khoản hoặc Khách vãng lai.
-  4. Nhấn "Bắt đầu".
-  5. Hệ thống tạo record trong bảng PHIEN_SU_DUNG, đổi trạng thái máy sang "Đang dùng".
-- **Giao diện minh họa:** *(Thành viên 2 chèn Mockup)*
-
-### 1.6.2 UC-02: Nạp tiền cho khách hàng
-- **Tác nhân:** Nhân viên.
-- **Tiền điều kiện:** Chọn đúng khách hàng trong danh sách.
-- **Luồng thông thường:**
-  1. Chọn khách hàng, nhấn "Nạp tiền".
-  2. Hệ thống hiển thị form yêu cầu nhập số tiền.
-  3. Nhập số tiền (VD: 50.000), hệ thống tự động preview được cộng 5 giờ và 5 điểm.
-  4. Nhấn Lưu. Hệ thống cộng số dư, giờ, điểm vào database.
-- **Ngoại lệ:** Nhập số tiền âm hoặc chữ sẽ báo lỗi.
-- **Giao diện minh họa:** *(Thành viên 2 chèn Mockup)*
+### 1.6.2 Đặc tả UC-02: Nạp tiền cho Khách hàng
+| **Thuộc tính** | **Mô tả** |
+|---|---|
+| **Tên Use-case** | Nạp tiền vào tài khoản (Deposit Money) |
+| **Mã UC** | UC-02 |
+| **Tác nhân** | Nhân viên thu ngân |
+| **Luồng sự kiện chính**| 1. Khách hàng cung cấp tên đăng nhập hoặc ID tại quầy và đưa tiền mặt.<br>2. Nhân viên vào tab "Khách hàng", chọn người dùng, nhấn [Nạp tiền].<br>3. Hệ thống hiển thị form yêu cầu nhập mệnh giá VND (Ví dụ: 100000).<br>4. Nhân viên nhập số tiền, hệ thống tự động preview sẽ được cộng bao nhiêu Giờ (VD: 10h) và bao nhiêu Điểm thưởng (VD: 10 điểm).<br>5. Nhân viên ấn [Xác nhận]. Hệ thống lưu thông tin vào cơ sở dữ liệu và hiện thông báo thành công. |
+| **Luồng lỗi**| - Nhân viên nhập số tiền là chữ cái hoặc số âm: Báo lỗi "Vui lòng nhập số tiền hợp lệ".<br>- Khách hàng không tồn tại trong hệ thống: Báo lỗi không tìm thấy ID. |
