@@ -86,25 +86,28 @@ graph LR
     Admin((Admin))
     
     subgraph Phân hệ Hệ thống & Quản trị
-        UC01[UC01: Đăng nhập]
-        UC02[UC02: Xem Dashboard]
-        UC10[UC10: Quản lý menu dịch vụ]
-        UC11[UC11: Thống kê doanh thu]
-        UC13[UC13: Đăng xuất]
+        UC01[Đăng nhập]
+        UC02[Xem Dashboard]
+        UC13[Đăng xuất]
     end
     
     subgraph Phân hệ Máy tính & Phiên chơi
-        UC03[UC03: Quản lý máy tính]
-        UC04[UC04: Bắt đầu phiên SD]
-        UC05[UC05: Kết thúc phiên SD]
-        UC06[UC06: Gọi đồ ăn/uống]
-        UC12[UC12: Đặt máy bảo trì]
+        UC03[Quản lý máy tính]
+        UC04[Bắt đầu phiên SD]
+        UC05[Kết thúc phiên SD]
+        UC06[Gọi đồ ăn/uống]
+        UC12[Đặt máy bảo trì]
     end
     
     subgraph Phân hệ Khách hàng & Thành viên
-        UC07[UC07: Quản lý khách hàng]
-        UC08[UC08: Nạp tiền khách hàng]
-        UC09[UC09: Đổi thưởng bằng điểm]
+        UC07[Quản lý khách hàng]
+        UC08[Nạp tiền khách hàng]
+        UC09[Đổi thưởng bằng điểm]
+    end
+    
+    subgraph Phân hệ Dịch vụ & Thống kê
+        UC10[Quản lý menu dịch vụ]
+        UC11[Thống kê doanh thu]
     end
     
     Admin --> UC01
@@ -204,230 +207,542 @@ graph TB
 ### 3.3.4. Đặc tả các Use Case chi tiết
 
 #### UC01: Đăng nhập
-- **Tên Use Case:** Đăng nhập
-- **Mô tả:** Admin đăng nhập tài khoản vào hệ thống để bắt đầu phiên làm việc.
-- **Actor chính:** Admin
-- **Actor phụ:** Hệ thống CSDL H2
-- **Tiền điều kiện:** Ứng dụng đã khởi động và hiển thị màn hình đăng nhập.
-- **Hậu điều kiện:** Admin đăng nhập thành công, hệ thống chuyển sang giao diện quản trị chính.
-- **Luồng sự kiện chính:**
-  1. Hệ thống hiển thị form đăng nhập `GiaoDienDangNhap`.
-  2. Admin nhập Tên đăng nhập và Mật khẩu (mặc định: admin/admin).
-  3. Admin nhấn nút "ĐĂNG NHẬP" (hoặc bấm Enter).
-  4. Hệ thống kiểm tra tài khoản, xác thực thông tin chính xác.
-  5. Hệ thống gọi `KetNoiCSDL.kiemTraKetNoi()` để kiểm tra kết nối database.
-  6. Hệ thống đóng form đăng nhập, khởi tạo và hiển thị `GiaoDienChinh` với màn hình Dashboard.
-- **Luồng sự kiện thay thế:**
-  - *Tại bước 4:* Nếu sai tài khoản hoặc mật khẩu, hệ thống hiển thị thông báo lỗi "Tên đăng nhập hoặc mật khẩu không chính xác!" và đưa con trỏ về ô đăng nhập để nhập lại.
-  - *Tại bước 5:* Nếu mất kết nối database nhúng H2, hệ thống hiển thị hộp thoại báo lỗi và hướng dẫn khởi động lại database trước khi quay lại màn hình đăng nhập.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC01[UC01: Đăng nhập]
+    UC01_Inc1[Nhập tài khoản, mật khẩu]
+    UC01_Inc2[Xác thực kết nối CSDL]
+    Admin --> UC01
+    UC01 -.->|include| UC01_Inc1
+    UC01 -.->|include| UC01_Inc2
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Đăng nhập |
+| **Mô tả** | Quản trị viên đăng nhập vào hệ thống để bắt đầu phiên làm việc. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Hệ thống CSDL H2 |
+| **Tiền điều kiện** | Ứng dụng đã khởi động thành công và hiển thị giao diện đăng nhập. |
+| **Hậu điều kiện** | Admin đăng nhập hệ thống thành công, hệ thống chuyển sang giao diện quản trị chính. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Khởi động ứng dụng | |
+| | 2. Hiển thị màn hình đăng nhập (GiaoDienDangNhap) |
+| 3. Nhập tên đăng nhập và mật khẩu | |
+| 4. Nhấn nút "ĐĂNG NHẬP" | |
+| | 5. Kiểm tra thông tin tài khoản có khớp khớp với cấu hình hệ thống không |
+| | 6. Gọi kết nối database để kiểm tra tính sẵn sàng của dữ liệu |
+| | 7. Ẩn form đăng nhập và khởi chạy giao diện điều khiển chính (GiaoDienChinh) |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| | **Tại bước 5:** Nếu sai tài khoản hoặc mật khẩu → Hệ thống hiển thị hộp thoại cảnh báo: "Tên đăng nhập hoặc mật khẩu không chính xác!" |
+| | **Tại bước 5.1:** Quay về bước 3 để nhập lại |
+| | **Tại bước 6:** Nếu không kết nối được database nhúng H2 → Hệ thống hiển thị dialog thông báo lỗi kết nối CSDL và hướng dẫn khắc phục |
+
+---
 
 #### UC02: Xem Dashboard tổng quan
-- **Tên Use Case:** Xem Dashboard tổng quan
-- **Mô tả:** Admin theo dõi nhanh các chỉ số hoạt động thời gian thực của quán game.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Admin đăng nhập thành công.
-- **Hậu điều kiện:** Hiển thị dữ liệu chính xác tại thời điểm xem.
-- **Luồng sự kiện chính:**
-  1. Admin chọn menu "Dashboard" trên sidebar.
-  2. Hệ thống truy vấn CSDL để đếm số máy tính có trạng thái "Trống" và "Đang dùng".
-  3. Hệ thống truy vấn tổng doanh thu máy chơi và doanh thu dịch vụ trong ngày hôm nay.
-  4. Hệ thống tải danh sách các phiên sử dụng đang hoạt động (`trang_thai = 'Đang chạy'`).
-  5. Hệ thống hiển thị 4 thẻ thống kê: Máy Trống, Đang dùng, Doanh thu máy, Doanh thu dịch vụ.
-  6. Hệ thống hiển thị bảng chi tiết các phiên đang chạy (gồm máy, tên khách, thời gian bắt đầu, thời gian sử dụng và tiền tạm tính).
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC02[UC02: Xem Dashboard]
+    UC02_Inc1[Lấy dữ liệu realtime]
+    Admin --> UC02
+    UC02 -.->|include| UC02_Inc1
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Xem Dashboard tổng quan |
+| **Mô tả** | Admin theo dõi các chỉ số hoạt động thực tế theo thời gian thực (realtime) của quán. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Admin đăng nhập thành công vào hệ thống. |
+| **Hậu điều kiện** | Hiển thị các số liệu thống kê doanh thu và máy tính chính xác tại thời điểm xem. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Chọn menu "Dashboard" trên thanh sidebar điều hướng | |
+| | 2. Thực hiện đếm số máy trống và số máy đang hoạt động từ bảng dữ liệu máy tính |
+| | 3. Tính toán tổng doanh thu giờ chơi và doanh thu dịch vụ phát sinh trong ngày hôm nay |
+| | 4. Lấy danh sách các phiên sử dụng máy tính đang chạy trong CSDL |
+| | 5. Hiển thị 4 thẻ thông tin chỉ số: Máy Trống, Đang Sử Dụng, Doanh Thu Máy, Doanh Thu Dịch Vụ |
+| | 6. Hiển thị bảng chi tiết các phiên đang chạy (Mã phiên, máy sử dụng, tên khách, thời gian bắt đầu, tiền tạm tính) |
+
+---
 
 #### UC03: Quản lý máy tính
-- **Tên Use Case:** Quản lý máy tính
-- **Mô tả:** Admin xem sơ đồ lưới các máy, thêm máy chơi hoặc sửa thông tin máy chơi.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Admin đăng nhập thành công.
-- **Hậu điều kiện:** CSDL máy tính được cập nhật.
-- **Luồng sự kiện chính:**
-  1. Admin chọn menu "Máy Tính" trên sidebar.
-  2. Hệ thống truy vấn toàn bộ danh sách máy và hiển thị dạng lưới các card máy tính.
-  3. Admin chọn "+ Thêm Máy".
-  4. Hệ thống hiển thị form nhập thông tin máy mới (Tên máy, loại máy Thường/VIP, cấu hình).
-  5. Admin nhập đầy đủ thông tin và nhấn "Lưu".
-  6. Hệ thống kiểm tra dữ liệu hợp lệ, thực hiện thêm bản ghi mới vào CSDL với trạng thái mặc định "Trống".
-  7. Làm mới lưới máy tính để hiển thị máy chơi mới thêm.
-- **Luồng sự kiện thay thế:**
-  - *Tại bước 2:* Admin có thể click chọn nút lọc để lọc danh sách hiển thị theo trạng thái: Tất cả, Trống, Đang dùng, Bảo trì.
-  - *Tại bước 6:* Nếu tên máy đã tồn tại hoặc bỏ trống, hệ thống cảnh báo và yêu cầu sửa lại thông tin.
 
-#### UC04: Bắt đầu phiên chơi
-- **Tên Use Case:** Bắt đầu phiên sử dụng
-- **Mô tả:** Admin khởi tạo một phiên chơi mới cho khách hàng tại một máy tính đang trống.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Máy tính được chọn phải ở trạng thái "Trống".
-- **Hậu điều kiện:** Phiên chơi mới được tạo, máy tính chuyển sang trạng thái "Đang dùng".
-- **Luồng sự kiện chính:**
-  1. Admin click vào card máy tính đang có trạng thái "Trống" (màu xanh).
-  2. Hệ thống gọi `KhachHangDAO.layTatCa()` để lấy danh sách thành viên.
-  3. Hệ thống hiển thị dialog "Bắt Đầu Phiên Sử Dụng" với thông tin máy và dropdown danh sách khách hàng.
-  4. Admin chọn tài khoản Khách thành viên từ danh sách (hoặc nhập tên Khách vãng lai).
-  5. Admin nhấn nút "▶ Bắt Đầu".
-  6. Hệ thống tạo đối tượng `PhienSuDung` mới, gán thời gian bắt đầu bằng thời gian hiện tại.
-  7. Hệ thống INSERT phiên chơi mới vào bảng `phien_su_dung` trong CSDL.
-  8. Hệ thống gọi `MayTinhDAO.capNhatTrangThai(maMay, "Đang dùng")` để đổi màu máy tính sang Đỏ.
-  9. Hệ thống đóng dialog, làm mới giao diện sơ đồ máy.
+```mermaid
+graph LR
+    Admin((Admin))
+    UC03[UC03: Quản lý máy tính]
+    UC03_Inc1[Xem danh sách máy]
+    UC03_Inc2[Thêm máy mới]
+    Admin --> UC03
+    UC03 -.->|include| UC03_Inc1
+    UC03 -.->|include| UC03_Inc2
+```
 
-#### UC05: Kết thúc phiên chơi
-- **Tên Use Case:** Kết thúc phiên sử dụng
-- **Mô tả:** Tính tiền giờ, tiền dịch vụ, trừ tiền tài khoản khách hoặc thu tiền mặt, giải phóng máy.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Máy tính được chọn đang ở trạng thái "Đang dùng".
-- **Hậu điều kiện:** Phiên chơi được lưu trạng thái kết thúc, tài khoản khách thành viên bị trừ tiền, máy chơi trở về trạng thái "Trống".
-- **Luồng sự kiện chính:**
-  1. Admin click vào card máy tính đang "Đang dùng" (màu đỏ).
-  2. Hệ thống truy vấn CSDL để lấy thông tin phiên chơi đang hoạt động của máy đó.
-  3. Hệ thống tính thời gian chơi thực tế và tiền máy (thời gian chơi lẻ làm tròn đến 0.1 giờ nhân đơn giá).
-  4. Hệ thống tính tổng tiền dịch vụ ăn uống thuộc phiên chơi này.
-  5. Hệ thống hiển thị dialog thanh toán chi tiết: Tên khách, thời gian bắt đầu, tiền giờ chơi, tiền dịch vụ, tổng tiền phải thanh toán.
-  6. Admin nhấn nút "⏹ Kết Thúc".
-  7. Hệ thống cập nhật thời gian kết thúc, tổng tiền chơi và đổi trạng thái phiên chơi thành "Đã kết thúc" trong CSDL.
-  8. Nếu là Khách thành viên: Hệ thống trừ tiền trực tiếp vào tài khoản khách, cộng thêm số giờ chơi tích lũy và điểm tích lũy tương ứng.
-  9. Hệ thống cập nhật trạng thái máy tính về lại "Trống".
-  10. Hệ thống đóng dialog, làm mới màn hình và thông báo thanh toán thành công.
-- **Luồng sự kiện thay thế:**
-  - *Tại bước 6:* Admin có thể chọn nút "Bảo Trì" thay vì "Kết Thúc" → Phiên chơi vẫn được thanh toán bình thường nhưng máy được đưa về trạng thái "Bảo trì" thay vì "Trống".
-  - *Tại bước 8:* Nếu tài khoản khách thành viên không đủ số dư để thanh toán → Hệ thống cảnh báo và yêu cầu admin nạp thêm tiền cho khách hoặc chuyển sang thu tiền mặt trực tiếp.
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Quản lý máy tính |
+| **Mô tả** | Xem danh sách máy tính dưới dạng sơ đồ lưới trực quan, lọc theo trạng thái và thêm máy tính mới. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Admin đăng nhập thành công và chọn phân hệ quản lý máy tính. |
+| **Hậu điều kiện** | Dữ liệu máy tính được thêm hoặc lọc đúng theo yêu cầu. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Chọn menu "Máy Tính" trên sidebar | |
+| | 2. Lấy toàn bộ danh sách máy tính từ CSDL |
+| | 3. Hiển thị lưới máy tính (card UI) với màu sắc hiển thị trạng thái (Xanh: Trống, Đỏ: Đang dùng, Vàng: Bảo trì) |
+| 4. Nhấn nút "+ Thêm Máy" | |
+| | 5. Hiển thị form thêm máy tính (Tên máy, Loại máy Thường/VIP, cấu hình) |
+| 6. Nhập thông tin máy mới và nhấn "Lưu" | |
+| | 7. Kiểm tra dữ liệu hợp lệ, thêm máy mới vào CSDL với trạng thái mặc định là "Trống" |
+| | 8. Làm mới lưới hiển thị máy tính |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| **Tại bước 3a:** Chọn lọc trạng thái (Trống / Đang dùng / Bảo trì) | |
+| | **Tại bước 3a.1:** Hệ thống truy vấn tương ứng và cập nhật lại lưới máy |
+| | **Tại bước 7:** Nếu tên máy bị trùng hoặc để trống → Hệ thống cảnh báo: "Tên máy không được để trống hoặc trùng lặp!" và yêu cầu nhập lại |
+
+---
+
+#### UC04: Bắt đầu phiên sử dụng
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC04[UC04: Bắt đầu phiên]
+    UC03[UC03: Quản lý máy tính]
+    UC04_Inc1[Chọn khách hàng]
+    Admin --> UC04
+    UC04 -.->|include| UC03
+    UC04 -.->|include| UC04_Inc1
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Bắt đầu phiên sử dụng |
+| **Mô tả** | Kích hoạt phiên chơi máy tính cho một khách hàng (thành viên hoặc vãng lai). |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Có máy tính ở trạng thái "Trống". |
+| **Hậu điều kiện** | Phiên chơi được lưu vào CSDL, máy tính chuyển sang trạng thái "Đang dùng". |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Click vào một máy tính có trạng thái "Trống" trên lưới | |
+| | 2. Hiển thị dialog "Bắt Đầu Phiên Sử Dụng" hiển thị tên máy, loại máy và đơn giá |
+| 3. Chọn tài khoản Khách hàng thành viên từ dropdown | |
+| 4. Nhấn nút "▶ Bắt Đầu" | |
+| | 5. Khởi tạo một đối tượng phiên chơi mới (gioBatDau = thời gian hiện tại) |
+| | 6. Thực hiện INSERT bản ghi phiên chơi vào bảng `phien_su_dung` trong CSDL |
+| | 7. Cập nhật trạng thái máy tính trong bảng `may_tinh` sang "Đang dùng" |
+| | 8. Đóng dialog, làm mới lưới máy tính và thông báo bắt đầu thành công |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| 3a. Không chọn khách hàng thành viên mà nhập tên Khách vãng lai | |
+| | **Tại bước 3a.1:** Đặt tên khách vãng lai và không lưu liên kết mã khách hàng thành viên |
+
+---
+
+#### UC05: Kết thúc phiên sử dụng
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC05[UC05: Kết thúc phiên]
+    UC04[UC04: Bắt đầu phiên]
+    UC06[UC06: Gọi đồ ăn/uống]
+    UC12[UC12: Đặt máy bảo trì]
+    Admin --> UC05
+    UC05 -.->|include| UC04
+    UC06 -.->|extend| UC05
+    UC12 -.->|extend| UC05
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Kết thúc phiên sử dụng |
+| **Mô tả** | Tính tiền giờ chơi, tiền dịch vụ, thanh toán hóa đơn và giải phóng máy về trạng thái trống hoặc bảo trì. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Máy tính được chọn đang ở trạng thái "Đang dùng" (có phiên chơi đang chạy). |
+| **Hậu điều kiện** | Phiên chơi được cập nhật thời gian kết thúc và tổng tiền; số dư khách thành viên bị trừ; máy tính được giải phóng. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Click vào máy tính đang ở trạng thái "Đang dùng" | |
+| | 2. Truy vấn thông tin phiên chơi hiện tại của máy đó |
+| | 3. Tính toán thời gian chơi thực tế (làm tròn đến 0.1 giờ) và tiền máy tương ứng |
+| | 4. Tính toán tổng tiền các đơn đặt đồ ăn/nước uống đã gọi trong phiên |
+| | 5. Hiển thị dialog thanh toán gồm: Tên khách, thời gian bắt đầu, tiền máy, tiền dịch vụ và tổng tiền thanh toán |
+| 6. Nhấn nút "⏹ Kết Thúc" để hoàn tất | |
+| | 7. Cập nhật thời gian kết thúc và tổng tiền vào bản ghi `phien_su_dung` |
+| | 8. Nếu là Khách thành viên: Trừ tiền trực tiếp vào tài khoản, cộng tổng giờ chơi tích lũy và cộng điểm thưởng tương ứng (1 giờ chơi = 1 điểm) |
+| | 9. Cập nhật trạng thái máy tính về "Trống" |
+| | 10. Đóng dialog, làm mới lưới máy tính và hiển thị thông báo thanh toán thành công |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| 6a. Chọn nút "Bảo Trì" thay vì "Kết Thúc" | |
+| | **Tại bước 6a.1:** Thực hiện thanh toán bình thường nhưng máy tính được đưa về trạng thái "Bảo trì" |
+| | **Tại bước 8:** Nếu tài khoản Khách thành viên không đủ số dư để thanh toán → Hệ thống thông báo yêu cầu nạp thêm tiền hoặc chuyển sang thanh toán bằng tiền mặt trực tiếp |
+
+---
 
 #### UC06: Gọi đồ ăn/uống
-- **Tên Use Case:** Gọi đồ ăn/uống
-- **Mô tả:** Admin đặt dịch vụ đồ ăn, đồ uống cho một máy đang sử dụng.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Máy tính được chọn phải đang ở trạng thái "Đang dùng".
-- **Hậu điều kiện:** Đơn hàng được tạo thành công và liên kết với phiên chơi hiện tại của máy.
-- **Luồng sự kiện chính:**
-  1. Admin click vào card máy đang "Đang dùng" và chọn nút "🍔 Gọi Món".
-  2. Hệ thống truy vấn CSDL lấy danh sách các món dịch vụ còn hàng.
-  3. Hệ thống hiển thị bảng thực đơn (tên món, phân loại, đơn giá, số lượng còn).
-  4. Admin tích chọn các món khách gọi và nhập số lượng tương ứng.
-  5. Admin nhấn nút "✓ Xác Nhận Đơn".
-  6. Hệ thống tạo đơn hàng mới `don_hang` và các bản ghi chi tiết đơn hàng `chi_tiet_don_hang`.
-  7. Hệ thống INSERT đơn hàng vào database, tự động liên kết với mã phiên đang chạy của máy đó.
-  8. Hệ thống thông báo gọi món thành công và đóng dialog.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC06[UC06: Gọi đồ ăn/uống]
+    UC05[UC05: Kết thúc phiên]
+    UC06_Inc1[Xem thực đơn còn hàng]
+    Admin --> UC06
+    UC06 -.->|extend| UC05
+    UC06 -.->|include| UC06_Inc1
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Gọi đồ ăn/uống |
+| **Mô tả** | Đặt các món ăn hoặc thức uống cho máy tính đang hoạt động, hóa đơn dịch vụ được tính chung khi kết thúc phiên chơi. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Máy tính được gọi món phải đang ở trạng thái "Đang dùng". |
+| **Hậu điều kiện** | Đơn hàng dịch vụ được tạo và liên kết trực tiếp với mã phiên đang chạy. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Click vào máy tính "Đang dùng", trong dialog thông tin nhấn nút "🍔 Gọi Món" | |
+| | 2. Lấy danh sách các món ăn, nước uống còn hàng trong thực đơn |
+| | 3. Hiển thị bảng menu gọi món (cho phép nhập số lượng) |
+| 4. Chọn các món ăn/thức uống và điều chỉnh số lượng tương ứng | |
+| 5. Nhấn nút "✓ Xác Nhận Đơn" | |
+| | 6. Khởi tạo đơn hàng `don_hang` và các bản ghi chi tiết đơn hàng `chi_tiet_don_hang` |
+| | 7. Lưu đơn hàng vào CSDL và gán liên kết với mã phiên chơi hiện tại |
+| | 8. Cập nhật lại tổng tiền dịch vụ tạm tính của phiên chơi |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| | **Tại bước 5:** Nếu Admin chưa chọn bất kỳ món nào hoặc nhập số lượng không hợp lệ (nhỏ hơn hoặc bằng 0) → Hệ thống hiển thị cảnh báo yêu cầu kiểm tra lại dữ liệu nhập |
+
+---
 
 #### UC07: Quản lý khách hàng
-- **Tên Use Case:** Quản lý khách hàng
-- **Mô tả:** Admin thực hiện xem danh sách, thêm, sửa đổi thông tin hoặc xóa tài khoản khách hàng thành viên.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Admin đăng nhập thành công.
-- **Hậu điều kiện:** Thông tin tài khoản khách hàng được cập nhật chính xác trong CSDL.
-- **Luồng sự kiện chính:**
-  1. Admin chọn menu "Khách Hàng" trên sidebar.
-  2. Hệ thống tải danh sách toàn bộ khách hàng và hiển thị lên bảng.
-  3. Admin chọn "+ Thêm Khách".
-  4. Hệ thống hiển thị form nhập: Tên khách hàng, Số điện thoại, Số tiền nạp ban đầu.
-  5. Admin điền thông tin và nhấn "Tạo Khách Hàng".
-  6. Hệ thống kiểm tra tên không được trống, SĐT hợp lệ và số tiền nạp ban đầu > 0.
-  7. Hệ thống tự động tính giờ chơi ban đầu và điểm tương ứng (10.000đ = 1 giờ = 1 điểm).
-  8. Hệ thống lưu tài khoản mới vào CSDL, tải lại bảng khách hàng.
-- **Luồng sự kiện thay thế:**
-  - *Tại bước 3:* Admin có thể chọn một khách hàng và nhấn "Sửa" để cập nhật thông tin tên/SĐT, hoặc nhấn "Xóa" để xóa tài khoản khỏi CSDL.
-  - *Tại bước 6:* Nếu số tiền nạp ≤ 0 hoặc định dạng SĐT không đúng, hệ thống cảnh báo và yêu cầu chỉnh sửa lại.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC07[UC07: Quản lý khách hàng]
+    UC07_Inc1[Xem danh sách thành viên]
+    UC07_Inc2[Thêm/Sửa/Xóa thành viên]
+    Admin --> UC07
+    UC07 -.->|include| UC07_Inc1
+    UC07 -.->|include| UC07_Inc2
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Quản lý khách hàng |
+| **Mô tả** | Xem danh sách thành viên, thêm tài khoản mới, cập nhật thông tin hoặc xóa tài khoản khách hàng. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Admin đăng nhập thành công và chọn phân hệ Khách hàng. |
+| **Hậu điều kiện** | Dữ liệu khách hàng trong database được cập nhật chính xác. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Chọn menu "Khách Hàng" trên thanh điều hướng | |
+| | 2. Lấy toàn bộ danh sách khách hàng từ CSDL và hiển thị lên bảng điều khiển |
+| 3. Chọn thao tác thêm mới bằng cách nhấn "+ Thêm Khách" | |
+| | 4. Hiển thị form nhập thông tin (Tên khách hàng, Số điện thoại, Số tiền nạp lần đầu) |
+| 5. Nhập đầy đủ thông tin yêu cầu và nhấn "Tạo Khách Hàng" | |
+| | 6. Kiểm tra tính hợp lệ của số điện thoại và số tiền nạp |
+| | 7. Lưu thông tin thành viên mới vào bảng `khach_hang` |
+| | 8. Cập nhật lại bảng hiển thị danh sách khách hàng |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| 3a. Chọn 1 khách hàng → Nhấn "Sửa" | |
+| | **Tại bước 3a.1:** Hiển thị form chỉnh sửa Tên/SĐT và cập nhật database |
+| 3b. Chọn 1 khách hàng → Nhấn "Xóa" | |
+| | **Tại bước 3b.1:** Hiển thị xác nhận và xóa khách hàng khỏi database |
+| 3c. Nhập từ khóa vào ô tìm kiếm → nhấn "Tìm" | |
+| | **Tại bước 3c.1:** Lọc hiển thị kết quả tìm kiếm |
+| | **Tại bước 6:** Nếu tên trống hoặc tiền nạp ≤ 0 → Thông báo lỗi và yêu cầu nhập lại |
+
+---
 
 #### UC08: Nạp tiền
-- **Tên Use Case:** Nạp tiền khách hàng
-- **Mô tả:** Admin nạp thêm tiền chơi vào tài khoản khách thành viên, hệ thống tự động quy đổi thành giờ chơi và điểm thưởng.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Admin chọn một tài khoản khách hàng trong danh sách.
-- **Hậu điều kiện:** Số dư tài khoản, giờ chơi và điểm tích lũy của khách hàng được cộng thêm tương ứng.
-- **Luồng sự kiện chính:**
-  1. Admin chọn khách hàng cần nạp tiền trên bảng và nhấn nút "💰 Nạp Tiền".
-  2. Hệ thống hiển thị dialog nạp tiền chứa thông tin hiện tại của khách và ô nhập số tiền nạp.
-  3. Admin nhập số tiền cần nạp.
-  4. Hệ thống tự động tính toán số giờ chơi được cộng thêm và điểm thưởng thưởng tích lũy thêm, hiển thị preview trên giao diện.
-  5. Admin nhấn nút xác nhận "Nạp Tiền".
-  6. Hệ thống thực hiện câu lệnh UPDATE cộng dồn số dư, giờ chơi, điểm vào CSDL.
-  7. Hệ thống thông báo nạp tiền thành công, đóng dialog và tải lại danh sách khách hàng.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC08[UC08: Nạp tiền khách hàng]
+    UC07[UC07: Quản lý khách hàng]
+    UC08_Inc1[Cập nhật số dư & giờ chơi]
+    Admin --> UC08
+    UC08 -.->|include| UC07
+    UC08 -.->|include| UC08_Inc1
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Nạp tiền khách hàng |
+| **Mô tả** | Nạp thêm tiền vào tài khoản hội viên của khách hàng, hệ thống tự động quy đổi thành giờ chơi và điểm tích lũy. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Đã chọn một khách hàng thành viên trong danh sách. |
+| **Hậu điều kiện** | Tài khoản khách hàng tăng số dư, tăng giờ chơi và điểm tích lũy trong database. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Chọn khách hàng thành viên từ bảng và nhấn nút "💰 Nạp Tiền" | |
+| | 2. Hiển thị dialog nạp tiền gồm thông tin khách hàng và ô nhập số tiền nạp |
+| 3. Nhập số tiền cần nạp | |
+| | 4. Quy đổi thời gian chơi tăng thêm (10.000đ = 1 giờ) và điểm thưởng tương ứng, hiển thị xem trước (preview) trên giao diện |
+| 5. Nhấn nút xác nhận "Nạp Tiền" | |
+| | 6. Cập nhật số dư tài khoản, tổng giờ chơi và điểm tích lũy của khách hàng trong database |
+| | 7. Đóng dialog, làm mới danh sách khách hàng và hiển thị thông báo thành công |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| | **Tại bước 3:** Nếu nhập số tiền không phải là số hoặc số tiền nạp nhỏ hơn hoặc bằng 0 → Hệ thống thông báo lỗi: "Số tiền nạp không hợp lệ!" và không cho xác nhận |
+
+---
 
 #### UC09: Đổi thưởng
-- **Tên Use Case:** Đổi thưởng bằng điểm
-- **Mô tả:** Khách hàng sử dụng điểm tích lũy chơi game để đổi lấy các món ăn/nước uống miễn phí.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Khách hàng thành viên có điểm tích lũy lớn hơn 0.
-- **Hậu điều kiện:** Điểm tích lũy bị trừ, hệ thống ghi nhận lịch sử đổi quà.
-- **Luồng sự kiện chính:**
-  1. Admin chọn khách hàng và nhấn nút "🎁 Đổi Thưởng".
-  2. Hệ thống hiển thị dialog đổi thưởng chứa số điểm hiện có của khách và bảng danh sách món ăn/nước uống hỗ trợ đổi thưởng (có cấu hình số điểm đổi > 0).
-  3. Admin tích chọn các phần quà khách muốn đổi và số lượng.
-  4. Hệ thống tự động tính tổng số điểm cần dùng và số điểm còn lại của khách.
-  5. Admin nhấn nút "Đổi Thưởng".
-  6. Hệ thống kiểm tra điểm tích lũy của khách có đủ để đổi hay không.
-  7. Hệ thống lưu lịch sử giao dịch vào bảng `lich_su_doi_thuong`.
-  8. Hệ thống UPDATE trừ số điểm tích lũy của khách hàng trong CSDL.
-  9. Hệ thống thông báo đổi thưởng thành công và cập nhật lại bảng danh sách khách hàng.
-- **Luồng sự kiện thay thế:**
-  - *Tại bước 6:* Nếu điểm tích lũy hiện có nhỏ hơn tổng số điểm cần đổi, hệ thống hiển thị cảnh báo "Khách hàng không đủ điểm để đổi thưởng!" và từ chối giao dịch.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC09[UC09: Đổi thưởng bằng điểm]
+    UC07[UC07: Quản lý khách hàng]
+    UC09_Inc1[Ghi lịch sử đổi quà]
+    Admin --> UC09
+    UC09 -.->|include| UC07
+    UC09 -.->|include| UC09_Inc1
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Đổi thưởng bằng điểm |
+| **Mô tả** | Khách hàng thành viên sử dụng điểm tích lũy (⭐) để đổi lấy đồ ăn hoặc thức uống miễn phí trong thực đơn hỗ trợ đổi thưởng. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Khách hàng được chọn có điểm tích lũy lớn hơn 0 và đã chọn món quà đổi thưởng hợp lệ. |
+| **Hậu điều kiện** | Điểm tích lũy của khách hàng bị trừ, hệ thống ghi nhận lịch sử đổi thưởng vào database. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Chọn khách hàng thành viên và nhấn nút "🎁 Đổi Thưởng" | |
+| | 2. Hiển thị dialog đổi thưởng có số điểm hiện tại của khách và danh sách thực đơn hỗ trợ đổi thưởng (các món có cấu hình điểm đổi > 0) |
+| 3. Chọn các món ăn/nước uống muốn đổi và điều chỉnh số lượng | |
+| | 4. Tự động tính tổng điểm cần dùng và hiển thị điểm còn lại sau khi đổi |
+| 5. Nhấn nút "Đổi Thưởng" | |
+| | 6. Kiểm tra xem điểm tích lũy hiện có của khách hàng có đủ để thực hiện giao dịch hay không |
+| | 7. Lưu các bản ghi lịch sử đổi thưởng vào bảng `lich_su_doi_thuong` |
+| | 8. Thực hiện trừ điểm tích lũy tương ứng trong bảng `khach_hang` |
+| | 9. Làm mới thông tin giao diện khách hàng và thông báo đổi thưởng thành công |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| | **Tại bước 6:** Nếu tổng số điểm cần đổi lớn hơn số điểm tích lũy hiện có của khách hàng → Hệ thống hiển thị thông báo lỗi: "Không đủ điểm để thực hiện đổi thưởng!" và từ chối giao dịch |
+
+---
 
 #### UC10: Quản lý menu dịch vụ
-- **Tên Use Case:** Quản lý menu dịch vụ
-- **Mô tả:** Admin quản lý thực đơn đồ ăn, đồ uống phục vụ tại quán game (CRUD).
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Admin đăng nhập thành công.
-- **Hậu điều kiện:** Danh mục thực đơn trong CSDL được cập nhật.
-- **Luồng sự kiện chính:**
-  1. Admin chọn menu "Dịch Vụ" trên sidebar.
-  2. Hệ thống tải thực đơn từ CSDL hiển thị lên bảng.
-  3. Admin chọn Thêm món / Sửa món / Xóa món.
-  4. Hệ thống hiển thị form nhập tương ứng (Tên món, đơn giá, phân loại Đồ ăn/Nước uống, điểm đổi thưởng, trạng thái còn hàng/hết hàng).
-  5. Admin điền thông tin và nhấn "Lưu".
-  6. Hệ thống xác thực dữ liệu hợp lệ và ghi thông tin vào CSDL.
-  7. Làm mới bảng hiển thị thực đơn dịch vụ.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC10[UC10: Quản lý menu dịch vụ]
+    UC10_Inc1[Xem thực đơn]
+    UC10_Inc2[Thêm/Sửa/Xóa món]
+    Admin --> UC10
+    UC10 -.->|include| UC10_Inc1
+    UC10 -.->|include| UC10_Inc2
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Quản lý menu dịch vụ |
+| **Mô tả** | Admin quản lý danh sách các món ăn, nước uống phục vụ tại quán (CRUD thực đơn). |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Admin đăng nhập thành công và lựa chọn phân hệ Dịch vụ. |
+| **Hậu điều kiện** | Danh sách thực đơn trong database được cập nhật (thêm/sửa/xóa món ăn). |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Chọn menu "Dịch Vụ" trên sidebar điều hướng | |
+| | 2. Truy vấn danh sách các dịch vụ ăn uống từ bảng `do_an_uong` |
+| | 3. Hiển thị bảng menu (Tên món, Phân loại, Đơn giá, Điểm đổi thưởng, Tình trạng còn hàng) |
+| 4. Thực hiện các thao tác Thêm món / Sửa món / Xóa món | |
+| | 5. Hiển thị form nhập liệu tương ứng với thao tác được chọn |
+| 6. Điền thông tin món ăn và nhấn "Lưu" | |
+| | 7. Kiểm tra dữ liệu hợp lệ (tên không trống, giá bán > 0) và lưu vào database |
+| | 8. Làm mới bảng hiển thị thực đơn dịch vụ |
+
+---
 
 #### UC11: Thống kê doanh thu
-- **Tên Use Case:** Thống kê doanh thu
-- **Mô tả:** Admin xem doanh thu giờ chơi, dịch vụ và biểu đồ tăng trưởng theo khoảng thời gian.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Hệ thống có ghi nhận dữ liệu phiên chơi đã kết thúc.
-- **Hậu điều kiện:** Biểu đồ doanh thu và bảng số liệu thống kê được hiển thị chính xác.
-- **Luồng sự kiện chính:**
-  1. Admin chọn menu "Thống Kê" trên sidebar.
-  2. Hệ thống hiển thị giao diện gồm 2 bộ chọn ngày (Từ ngày, Đến ngày) và các nút thống kê nhanh.
-  3. Admin chọn khoảng thời gian cần xem và nhấn nút "🔍 Xem thống kê".
-  4. Hệ thống truy vấn CSDL để lấy tổng doanh thu máy và tổng doanh thu dịch vụ trong khoảng ngày được chọn.
-  5. Hệ thống tính toán doanh thu tổng, tổng số phiên hoạt động và doanh thu trung bình mỗi ngày.
-  6. Hệ thống sử dụng đối tượng Graphics2D để vẽ biểu đồ cột doanh thu trực quan lên panel hiển thị.
-  7. Hệ thống hiển thị bảng chi tiết doanh thu theo từng ngày trong khoảng thời gian đã lọc.
-- **Luồng sự kiện thay thế:**
-  - *Tại bước 3:* Nếu ngày bắt đầu lớn hơn ngày kết thúc, hệ thống hiển thị cảnh báo lỗi "Khoảng ngày thống kê không hợp lệ!" và yêu cầu chọn lại.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC11[UC11: Thống kê doanh thu]
+    UC11_Inc1[Vẽ biểu đồ doanh thu]
+    Admin --> UC11
+    UC11 -.->|include| UC11_Inc1
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Thống kê doanh thu |
+| **Mô tả** | Xem báo cáo tài chính tổng hợp về doanh thu giờ chơi và doanh thu dịch vụ theo khoảng thời gian tùy chọn dưới dạng biểu đồ và bảng số liệu. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Admin đăng nhập thành công và lựa chọn phân hệ Thống kê. |
+| **Hậu điều kiện** | Hiển thị biểu đồ doanh thu và bảng tổng hợp số liệu chính xác theo khoảng ngày được chọn. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Chọn menu "Thống Kê" trên thanh điều hướng | |
+| | 2. Hiển thị giao diện bộ lọc thống kê (Từ ngày, Đến ngày) và các nút chọn nhanh (7 ngày qua, 30 ngày qua, Hôm nay) |
+| 3. Chọn khoảng thời gian thống kê và nhấn nút "🔍 Xem thống kê" | |
+| | 4. Thực hiện truy vấn tổng tiền máy và tiền dịch vụ từ các phiên chơi đã kết thúc trong khoảng thời gian đã chọn |
+| | 5. Tổng hợp dữ liệu doanh thu theo từng ngày |
+| | 6. Vẽ biểu đồ cột trực quan hiển thị doanh thu tăng trưởng theo thời gian sử dụng Graphics2D |
+| | 7. Hiển thị bảng tổng hợp chi tiết (Ngày, tổng số phiên hoạt động, doanh thu) và các thẻ chỉ số (Tổng doanh thu, Tổng số phiên, Doanh thu trung bình/ngày) |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| | **Tại bước 3:** Nếu ngày bắt đầu được chọn lớn hơn ngày kết thúc → Hệ thống thông báo lỗi: "Khoảng ngày thống kê không hợp lệ!" và yêu cầu chọn lại |
+
+---
 
 #### UC12: Đặt máy bảo trì
-- **Tên Use Case:** Đặt máy bảo trì
-- **Mô tả:** Khóa máy chơi tính khi có sự cố kỹ thuật.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Máy tính được chọn phải ở trạng thái "Trống" hoặc đang kết thúc phiên chơi.
-- **Hậu điều kiện:** Trạng thái máy được cập nhật thành "Bảo trì" trong database.
-- **Luồng sự kiện chính:**
-  1. Admin click vào card máy tính trống (hoặc khi đang trong dialog kết thúc phiên sử dụng).
-  2. Admin nhấn nút "Bảo Trì" (hoặc chọn trạng thái bảo trì).
-  3. Hệ thống UPDATE trạng thái máy tính thành "Bảo trì" trong bảng `may_tinh` của CSDL.
-  4. Hệ thống làm mới lưới giao diện, đổi màu card máy tính sang Vàng (Bảo trì) và vô hiệu hóa chức năng bắt đầu phiên trên máy đó.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC12[UC12: Đặt máy bảo trì]
+    UC05[UC05: Kết thúc phiên]
+    Admin --> UC12
+    UC12 -.->|extend| UC05
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Đặt máy bảo trì |
+| **Mô tả** | Đưa một máy tính vào trạng thái bảo trì hoặc khóa máy do sự cố phần cứng/phần mềm. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Máy tính được chọn đang ở trạng thái "Trống" hoặc đang thanh toán phiên chơi. |
+| **Hậu điều kiện** | Trạng thái máy tính được cập nhật thành "Bảo trì" trong database, không cho phép mở phiên chơi mới trên máy này. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Click vào máy tính đang hoạt động hoặc trống trên lưới | |
+| | 2. Trong dialog thông tin máy, nhấn nút "Bảo Trì" |
+| 3. Xác nhận chuyển trạng thái máy tính sang bảo trì | |
+| | 4. Cập nhật trạng thái máy tính thành "Bảo trì" trong CSDL |
+| | 5. Đóng dialog, làm mới lưới máy tính (card máy chuyển sang viền màu Vàng và có nhãn trạng thái "Bảo trì") |
+
+---
 
 #### UC13: Đăng xuất
-- **Tên Use Case:** Đăng xuất
-- **Mô tả:** Admin đóng phiên làm việc hiện tại và đóng ứng dụng an toàn.
-- **Actor chính:** Admin
-- **Actor phụ:** Không
-- **Tiền điều kiện:** Ứng dụng đang hoạt động ở giao diện quản trị chính.
-- **Hậu điều kiện:** Giải phóng tài nguyên phần mềm và tắt hoàn toàn ứng dụng.
-- **Luồng sự kiện chính:**
-  1. Admin click nút "Đăng Xuất" nằm ở dưới cùng thanh sidebar.
-  2. Hệ thống hiển thị dialog hỏi xác nhận: "Bạn có chắc chắn muốn đăng xuất và đóng ứng dụng?".
-  3. Admin nhấn "Yes" để xác nhận.
-  4. Hệ thống thực hiện ngắt kết nối an toàn với cơ sở dữ liệu nhúng H2 để tránh lỗi hỏng file dữ liệu.
-  5. Hệ thống gọi phương thức `dispose()` để giải phóng giao diện và gọi `System.exit(0)` để kết thúc ứng dụng.
+
+```mermaid
+graph LR
+    Admin((Admin))
+    UC13[UC13: Đăng xuất]
+    UC13_Inc1[Đóng kết nối CSDL]
+    Admin --> UC13
+    UC13 -.->|include| UC13_Inc1
+```
+
+| Thuộc tính | Mô tả |
+|-----------|-------|
+| **Tên Use Case** | Đăng xuất |
+| **Mô tả** | Thoát khỏi phiên làm việc hiện tại và đóng ứng dụng an toàn. |
+| **Actor chính** | Admin |
+| **Actor phụ** | Không |
+| **Tiền điều kiện** | Ứng dụng đang hoạt động ở màn hình điều khiển chính. |
+| **Hậu điều kiện** | Ứng dụng được giải phóng bộ nhớ và đóng hoàn toàn. |
+
+**Luồng sự kiện chính:**
+
+| Admin | Hệ thống |
+|---|---|
+| 1. Click vào nút "Đăng Xuất" ở góc cuối thanh sidebar | |
+| | 2. Hiển thị hộp thoại hỏi xác nhận: "Bạn có chắc chắn muốn đăng xuất và đóng ứng dụng?" |
+| 3. Chọn "Yes" | |
+| | 4. Thực hiện đóng kết nối CSDL hiện tại để đảm bảo an toàn dữ liệu |
+| | 5. Giải phóng tài nguyên giao diện (dispose) và thoát chương trình (System.exit) |
+
+**Luồng sự kiện thay thế và ngoại lệ:**
+
+| Admin | Hệ thống |
+|---|---|
+| | **Tại bước 3:** Nếu chọn "No" → Hệ thống đóng dialog xác nhận và giữ nguyên trạng thái giao diện chính để tiếp tục làm việc |
 
 ---
 
@@ -461,7 +776,8 @@ flowchart TD
     LoadMenu --> ShowMenu[Hiển thị bảng menu dịch vụ]
     ShowMenu --> SelectItems[Admin chọn món ăn/uống & chỉnh số lượng]
     SelectItems --> ClickConfirm[Nhấn Xác nhận đơn]
-    ClickConfirm --> CheckSelected{Có chọn món nào không?}
+    CheckSelected{Có chọn món nào không?}
+    ClickConfirm --> CheckSelected
     CheckSelected -->|Không| ErrorMsg[Hiển thị cảnh báo chưa chọn món]
     ErrorMsg --> SelectItems
     CheckSelected -->|Có| CreateOrder[Tạo DonHang & ChiTietDonHang]
@@ -526,7 +842,6 @@ flowchart TD
 ### 3.4.2. Biểu đồ tuần tự (Sequence Diagram)
 
 #### 1. Đăng nhập (UC01)
-Trình diễn tương tác tuần tự của quá trình kiểm tra tài khoản bảo mật và thiết lập giao diện làm việc chính.
 
 ```mermaid
 sequenceDiagram
@@ -559,7 +874,6 @@ sequenceDiagram
 ```
 
 #### 2. Bắt đầu phiên chơi (UC04)
-Trình diễn luồng tuần tự lấy danh sách khách hàng, tạo phiên chơi và cập nhật trạng thái hoạt động của máy chơi lên cơ sở dữ liệu.
 
 ```mermaid
 sequenceDiagram
@@ -590,7 +904,6 @@ sequenceDiagram
 ```
 
 #### 3. Gọi đồ ăn/uống (UC06)
-Mô tả tuần tự các bước đặt dịch vụ món ăn thức uống gắn với phiên chơi đang chạy trên máy tính.
 
 ```mermaid
 sequenceDiagram
@@ -619,7 +932,6 @@ sequenceDiagram
 ```
 
 #### 4. Kết thúc phiên & Thanh toán (UC05)
-Tuần tự luồng xử lý tính tiền giờ, tiền dịch vụ, trừ tiền số dư tài khoản hội viên và trả máy về trạng thái trống.
 
 ```mermaid
 sequenceDiagram
@@ -659,7 +971,6 @@ sequenceDiagram
 ```
 
 #### 5. Nạp tiền khách hàng (UC08)
-Mô tả tương tác tuần tự giữa Admin, giao diện, DAO lớp xử lý và CSDL để nạp tiền vào tài khoản hội viên.
 
 ```mermaid
 sequenceDiagram
@@ -679,7 +990,6 @@ sequenceDiagram
 ```
 
 #### 6. Đổi thưởng bằng điểm (UC09)
-Mô tả tuần tự luồng đổi điểm lấy quà, lưu lịch sử đổi quà và trừ điểm thành viên.
 
 ```mermaid
 sequenceDiagram
@@ -712,7 +1022,6 @@ sequenceDiagram
 ---
 
 ### 3.4.3. Biểu đồ lớp phân tích (Class Diagram)
-Biểu đồ lớp dưới đây thể hiện các thực thể dữ liệu (Entities) chính trong hệ thống và mối liên kết quan hệ logic giữa chúng.
 
 ```mermaid
 classDiagram
