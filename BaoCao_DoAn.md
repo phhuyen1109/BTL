@@ -514,6 +514,29 @@ graph LR
 | | **Tại bước 5.1:** Quay về bước 3 để nhập lại |
 | | **Tại bước 6:** Nếu không kết nối được database nhúng H2 → Hệ thống hiển thị dialog thông báo lỗi kết nối CSDL và hướng dẫn khắc phục |
 
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> OpenApp[1. Khởi động ứng dụng]
+        Input[3. Nhập username, password] --> PressLogin[4. Nhấn Đăng nhập]
+        InputAgain[Nhập lại tài khoản] --> PressLogin
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        OpenApp --> ShowForm[2. Hiển thị Form đăng nhập]
+        ShowForm --> Input
+        PressLogin --> VerifyAccount{5. Xác thực tài khoản?}
+        VerifyAccount -->|Thất bại| AlertError[5.1. Báo lỗi tài khoản/mật khẩu]
+        AlertError -.-> InputAgain
+        VerifyAccount -->|Thành công| CheckDB{6. Kết nối CSDL?}
+        CheckDB -->|Thất bại| AlertDB[6.1. Báo lỗi database]
+        AlertDB --> EndError([Kết thúc có lỗi])
+        CheckDB -->|Thành công| ShowMain[7. Ẩn form, hiển thị Dashboard]
+        ShowMain --> End([Kết thúc])
+    end
+```
+
 ---
 
 #### UC02: Xem Dashboard tổng quan
@@ -546,6 +569,22 @@ graph LR
 | | 4. Lấy danh sách các phiên sử dụng máy tính đang chạy trong CSDL |
 | | 5. Hiển thị 4 thẻ thông tin chỉ số: Máy Trống, Đang Sử Dụng, Doanh Thu Máy, Doanh Thu Dịch Vụ |
 | | 6. Hiển thị bảng chi tiết các phiên đang chạy (Mã phiên, máy sử dụng, tên khách, thời gian bắt đầu, tiền tạm tính) |
+
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectDashboard[1. Chọn menu Dashboard]
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectDashboard --> CountStatus[2. Đếm số máy Trống / Đang dùng]
+        CountStatus --> CalcRevenue[3. Tính tổng doanh thu hôm nay]
+        CalcRevenue --> FetchSessions[4. Lấy danh sách các phiên đang chạy]
+        FetchSessions --> RenderDashboard[5 & 6. Hiển thị 4 thẻ chỉ số & Bảng phiên hoạt động]
+        RenderDashboard --> End([Kết thúc])
+    end
+```
 
 ---
 
@@ -592,6 +631,29 @@ graph LR
 | | **Tại bước 3a.1:** Hệ thống truy vấn tương ứng và cập nhật lại lưới máy |
 | | **Tại bước 7:** Nếu tên máy bị trùng hoặc để trống → Hệ thống cảnh báo: "Tên máy không được để trống hoặc trùng lặp!" và yêu cầu nhập lại |
 
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectTab[1. Chọn menu Máy Tính]
+        SelectTab -.-> ChooseAdd[4. Nhấn nút + Thêm Máy]
+        ChooseAdd -.-> InputInfo[6. Nhập thông tin máy & Lưu]
+        InputAgain[Nhập lại thông tin] --> InputInfo
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectTab --> FetchComputers[2. Truy vấn danh sách máy từ CSDL]
+        FetchComputers --> RenderGrid[3. Hiển thị lưới máy viền màu]
+        ChooseAdd --> ShowForm[5. Hiển thị Form nhập liệu thêm máy]
+        InputInfo --> ValidateInfo{7. Kiểm tra dữ liệu?}
+        ValidateInfo -->|Không hợp lệ/Trùng| AlertError[7.1. Báo lỗi trống hoặc trùng tên]
+        AlertError -.-> InputAgain
+        ValidateInfo -->|Hợp lệ| InsertDB[7.2. Lưu máy mới vào CSDL]
+        InsertDB --> RefreshGrid[8. Đóng form, làm mới lưới máy]
+        RefreshGrid --> End([Kết thúc])
+    end
+```
+
 ---
 
 #### UC04: Bắt đầu phiên sử dụng
@@ -635,6 +697,26 @@ graph LR
 |---|---|
 | 3a. Không chọn khách hàng thành viên mà nhập tên Khách vãng lai | |
 | | **Tại bước 3a.1:** Đặt tên khách vãng lai và không lưu liên kết mã khách hàng thành viên |
+
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> ClickEmpty[1. Click card máy Trống]
+        ClickEmpty -.-> ChooseKH[3. Chọn tài khoản / nhập tên Khách]
+        ChooseKH --> ClickStart[4. Nhấn nút Bắt Đầu]
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        ClickEmpty --> LoadKH[2. Load danh sách khách hàng]
+        LoadKH --> ShowDlg[2.1. Hiển thị Dialog Bắt đầu phiên]
+        ClickStart --> CreateSession[5. Khởi tạo PhienSuDung mới]
+        CreateSession --> InsertDB[6. INSERT bản ghi vào phien_su_dung]
+        InsertDB --> UpdateComputer[7. UPDATE trạng thái máy sang Đang dùng]
+        UpdateComputer --> RefreshGrid[8. Đóng dialog, làm mới lưới máy]
+        RefreshGrid --> End([Kết thúc])
+    end
+```
 
 ---
 
@@ -685,6 +767,35 @@ graph LR
 | | **Tại bước 6a.1:** Thực hiện thanh toán bình thường nhưng máy tính được đưa về trạng thái "Bảo trì" |
 | | **Tại bước 8:** Nếu tài khoản Khách thành viên không đủ số dư để thanh toán → Hệ thống thông báo yêu cầu nạp thêm tiền hoặc chuyển sang thanh toán bằng tiền mặt trực tiếp |
 
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> ClickActive[1. Click card máy Đang dùng]
+        ClickActive -.-> ClickConfirm[6. Nhấn nút Kết thúc / Bảo trì]
+        ClickConfirm -.-> PayCash[Thanh toán bằng Tiền mặt]
+        PayCash --> End
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        ClickActive --> QuerySession[2. Truy vấn phiên chơi đang chạy]
+        QuerySession --> CalcBill[3 & 4. Tính tiền máy, tiền dịch vụ & tổng cộng]
+        CalcBill --> ShowBill[5. Hiển thị Dialog thanh toán hóa đơn chi tiết]
+        ClickConfirm --> UpdateSession[7. Cập nhật phiên chơi thành Đã kết thúc]
+        UpdateSession --> CheckKH{8. Khách thành viên?}
+        CheckKH -->|Không| ShowFinal[Hiển thị tổng tiền cần thu mặt]
+        CheckKH -->|Có| CheckBalance{8.1. Đủ số dư?}
+        CheckBalance -->|Không| AlertBalance[8.2. Báo không đủ số dư, chuyển tiền mặt]
+        AlertBalance -.-> PayCash
+        CheckBalance -->|Có| DeductBalance[8.3. Trừ tiền tài khoản, cộng giờ & tích điểm]
+        DeductBalance --> UpdateKH[Lưu cập nhật khách hàng vào CSDL]
+        UpdateKH --> ShowFinal
+        ShowFinal --> UpdateComp[9. UPDATE máy sang Trống hoặc Bảo trì]
+        UpdateComp --> RefreshGrid[10. Đóng form, làm mới sơ đồ máy]
+        RefreshGrid --> End([Kết thúc])
+    end
+```
+
 ---
 
 #### UC06: Gọi đồ ăn/uống
@@ -727,6 +838,29 @@ graph LR
 | Admin | Hệ thống |
 |---|---|
 | | **Tại bước 5:** Nếu Admin chưa chọn bất kỳ món nào hoặc nhập số lượng không hợp lệ (nhỏ hơn hoặc bằng 0) → Hệ thống hiển thị cảnh báo yêu cầu kiểm tra lại dữ liệu nhập |
+
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> OpenOrder[1. Nhấn nút Gọi Món]
+        OpenOrder -.-> SelectItems[4. Tích chọn món & nhập số lượng]
+        SelectItems --> ClickConfirm[5. Nhấn nút Xác nhận đơn]
+        SelectAgain[Chọn lại món] --> SelectItems
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        OpenOrder --> FetchMenu[2. Truy vấn thực đơn còn hàng từ database]
+        FetchMenu --> ShowMenu[3. Hiển thị Dialog bảng menu chọn món]
+        ClickConfirm --> CheckSelected{Kiểm tra có chọn món?}
+        CheckSelected -->|Không| AlertError[Báo lỗi chưa chọn món ăn/uống]
+        AlertError -.-> SelectAgain
+        CheckSelected -->|Có| CreateOrder[6. Khởi tạo DonHang & ChiTietDonHang]
+        CreateOrder --> InsertDB[7. Lưu đơn hàng vào CSDL, liên kết mã phiên]
+        InsertDB --> UpdateTienDV[8. Cập nhật tổng tiền dịch vụ tạm tính của phiên]
+        UpdateTienDV --> End([Kết thúc])
+    end
+```
 
 ---
 
@@ -777,6 +911,30 @@ graph LR
 | | **Tại bước 3c.1:** Lọc hiển thị kết quả tìm kiếm |
 | | **Tại bước 6:** Nếu tên trống hoặc tiền nạp ≤ 0 → Thông báo lỗi và yêu cầu nhập lại |
 
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectTab[1. Chọn menu Khách Hàng]
+        SelectTab -.-> ClickAdd[3. Nhấn + Thêm Khách]
+        ClickAdd -.-> InputInfo[5. Nhập Tên, SĐT, Tiền nạp & nhấn Tạo]
+        InputAgain[Nhập lại thông tin] --> InputInfo
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectTab --> FetchKH[2. Truy vấn danh sách khách hàng]
+        FetchKH --> ShowTable[2.1. Hiển thị bảng danh sách khách hàng]
+        ClickAdd --> ShowDlg[4. Hiển thị form Dialog thêm khách hàng]
+        InputInfo --> Validate{6. Kiểm tra thông tin nhập?}
+        Validate -->|Không hợp lệ| AlertError[Báo lỗi tên trống hoặc tiền nạp <= 0]
+        AlertError -.-> InputAgain
+        Validate -->|Hợp lệ| CalcPoints[7. Tự động quy đổi tiền thành giờ & điểm]
+        CalcPoints --> InsertDB[7.1. Lưu thông tin khách hàng vào CSDL]
+        InsertDB --> RefreshTable[8. Đóng dialog, làm mới danh sách bảng]
+        RefreshTable --> End([Kết thúc])
+    end
+```
+
 ---
 
 #### UC08: Nạp tiền
@@ -818,6 +976,28 @@ graph LR
 | Admin | Hệ thống |
 |---|---|
 | | **Tại bước 3:** Nếu nhập số tiền không phải là số hoặc số tiền nạp nhỏ hơn hoặc bằng 0 → Hệ thống thông báo lỗi: "Số tiền nạp không hợp lệ!" và không cho xác nhận |
+
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectKH[1. Chọn khách hàng & nhấn Nạp Tiền]
+        SelectKH -.-> InputMoney[3. Nhập số tiền cần nạp]
+        InputMoney -.-> ClickConfirm[5. Nhấn nút Nạp Tiền]
+        InputAgain[Nhập lại số tiền] --> InputMoney
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectKH --> ShowDlg[2. Hiển thị Dialog nạp tiền]
+        InputMoney --> ShowPreview[4. Quy đổi & hiển thị giờ + điểm cộng thêm]
+        ClickConfirm --> ValidateMoney{Kiểm tra số tiền > 0?}
+        ValidateMoney -->|Không| AlertError[Báo lỗi số tiền nạp không hợp lệ]
+        AlertError -.-> InputAgain
+        ValidateMoney -->|Có| UpdateDB[6. UPDATE số dư, tổng giờ & điểm vào CSDL]
+        UpdateDB --> RefreshTable[7. Đóng dialog, làm mới danh sách khách hàng]
+        RefreshTable --> End([Kết thúc])
+    end
+```
 
 ---
 
@@ -863,6 +1043,29 @@ graph LR
 |---|---|
 | | **Tại bước 6:** Nếu tổng số điểm cần đổi lớn hơn số điểm tích lũy hiện có của khách hàng → Hệ thống hiển thị thông báo lỗi: "Không đủ điểm để thực hiện đổi thưởng!" và từ chối giao dịch |
 
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectKH[1. Chọn khách hàng & nhấn Đổi Thưởng]
+        SelectKH -.-> SelectGifts[3. Tích chọn các phần quà muốn đổi]
+        SelectGifts --> ClickConfirm[5. Nhấn nút Đổi Thưởng]
+        SelectAgain[Chọn lại phần quà] --> SelectGifts
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectKH --> ShowDlg[2. Hiển thị Dialog đổi quà & số điểm tích lũy]
+        SelectGifts --> CalcPoints[4. Tính tổng điểm cần & điểm còn lại]
+        ClickConfirm --> CheckPoints{6. Điểm khách >= Điểm cần?}
+        CheckPoints -->|Không| AlertError[Báo lỗi không đủ điểm đổi thưởng]
+        AlertError -.-> SelectAgain
+        CheckPoints -->|Có| WriteHistory[7. INSERT ghi nhận vào bảng lịch sử đổi thưởng]
+        WriteHistory --> DeductPoints[8. UPDATE trừ điểm khách hàng trong CSDL]
+        DeductPoints --> RefreshTable[9. Đóng dialog, cập nhật lại bảng khách hàng]
+        RefreshTable --> End([Kết thúc])
+    end
+```
+
 ---
 
 #### UC10: Quản lý menu dịch vụ
@@ -899,6 +1102,29 @@ graph LR
 | 6. Điền thông tin món ăn và nhấn "Lưu" | |
 | | 7. Kiểm tra dữ liệu hợp lệ (tên không trống, giá bán > 0) và lưu vào database |
 | | 8. Làm mới bảng hiển thị thực đơn dịch vụ |
+
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectTab[1. Chọn menu Dịch Vụ]
+        SelectTab -.-> ChooseCRUD[4. Chọn Thêm/Sửa/Xóa món]
+        ChooseCRUD -.-> InputInfo[6. Điền thông tin & nhấn Lưu]
+        InputAgain[Nhập lại dữ liệu] --> InputInfo
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectTab --> FetchMenu[2. Truy vấn CSDL danh sách menu đồ ăn uống]
+        FetchMenu --> ShowTable[3. Hiển thị bảng danh mục dịch vụ]
+        ChooseCRUD --> ShowDlg[5. Hiển thị Dialog form nhập thông tin món]
+        InputInfo --> Validate[7. Kiểm tra dữ liệu hợp lệ?]
+        Validate -->|Không hợp lệ| AlertError[Báo lỗi dữ liệu không hợp lệ]
+        AlertError -.-> InputAgain
+        Validate -->|Hợp lệ| UpdateDB[7.1. Lưu thông tin món vào CSDL]
+        UpdateDB --> RefreshTable[8. Đóng form, làm mới bảng thực đơn]
+        RefreshTable --> End([Kết thúc])
+    end
+```
 
 ---
 
@@ -940,6 +1166,27 @@ graph LR
 |---|---|
 | | **Tại bước 3:** Nếu ngày bắt đầu được chọn lớn hơn ngày kết thúc → Hệ thống thông báo lỗi: "Khoảng ngày thống kê không hợp lệ!" và yêu cầu chọn lại |
 
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectTab[1. Chọn menu Thống Kê]
+        SelectTab -.-> ChooseDate[3. Chọn khoảng ngày & bấm Xem Thống Kê]
+        SelectAgain[Chọn lại ngày] --> ChooseDate
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectTab --> ShowUI[2. Hiển thị bộ lọc JDateChooser & các nút chọn nhanh]
+        ChooseDate --> ValidateDate{Kiểm tra Ngày bắt đầu <= Ngày kết thúc?}
+        ValidateDate -->|Không| AlertError[Báo lỗi khoảng ngày không hợp lệ]
+        AlertError -.-> SelectAgain
+        ValidateDate -->|Có| FetchData[4 & 5. Truy vấn CSDL, tổng hợp doanh thu theo ngày]
+        FetchData --> DrawChart[6. Vẽ biểu đồ cột Graphics2D]
+        DrawChart --> ShowResult[7. Hiển thị biểu đồ, 3 thẻ chỉ số & bảng doanh thu]
+        ShowResult --> End([Kết thúc])
+    end
+```
+
 ---
 
 #### UC12: Đặt máy bảo trì
@@ -971,6 +1218,22 @@ graph LR
 | 3. Xác nhận chuyển trạng thái máy tính sang bảo trì | |
 | | 4. Cập nhật trạng thái máy tính thành "Bảo trì" trong CSDL |
 | | 5. Đóng dialog, làm mới lưới máy tính (card máy chuyển sang viền màu Vàng và có nhãn trạng thái "Bảo trì") |
+
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> SelectComp[1. Click vào máy tính trên lưới]
+        SelectComp -.-> ClickConfirm[3. Xác nhận đặt Bảo trì]
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        SelectComp --> ShowDlg[2. Hiển thị Dialog thông tin máy và nút Bảo Trì]
+        ClickConfirm --> UpdateDB[4. UPDATE trạng thái máy sang Bảo trì trong CSDL]
+        UpdateDB --> RefreshGrid[5. Đóng dialog, cập nhật card máy sang viền màu Vàng]
+        RefreshGrid --> End([Kết thúc])
+    end
+```
 
 ---
 
@@ -1009,6 +1272,26 @@ graph LR
 | Admin | Hệ thống |
 |---|---|
 | | **Tại bước 3:** Nếu chọn "No" → Hệ thống đóng dialog xác nhận và giữ nguyên trạng thái giao diện chính để tiếp tục làm việc |
+
+**Biểu đồ hoạt động phân làn (Activity Diagram Swimlane):**
+
+```mermaid
+flowchart TD
+    subgraph Admin_Lanes["Người dùng (Admin)"]
+        Start([Bắt đầu]) --> ClickLogout[1. Nhấn Đăng Xuất trên sidebar]
+        ClickLogout -.-> ConfirmLogout[3. Xác nhận chọn Yes / No]
+        ConfirmLogout -->|Yes| EndApp
+        ConfirmLogout -->|No| Cancel
+    end
+    subgraph System_Lanes["Hệ thống (CyberNet)"]
+        ClickLogout --> ShowConfirm[2. Hiển thị hộp thoại hỏi xác nhận]
+        EndApp[Xác nhận Yes] --> CloseDB[4. Đóng kết nối CSDL H2 an toàn]
+        CloseDB --> DisposeGUI[5. Giải phóng giao diện & Thoát ứng dụng]
+        DisposeGUI --> End([Kết thúc chương trình])
+        Cancel[Xác nhận No] --> ResumeGUI[Đóng dialog, tiếp tục sử dụng]
+        ResumeGUI --> EndSession([Tiếp tục phiên làm việc])
+    end
+```
 
 ---
 
