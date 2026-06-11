@@ -832,82 +832,286 @@ graph TB
 
 ## 3.4. Phân tích hành vi và cấu trúc hệ thống
 
-### Activity Diagram — Quy trình bắt đầu & kết thúc phiên sử dụng
+### 3.4.1. Biểu đồ hoạt động (Activity Diagram)
+
+#### 1. Luồng Bắt đầu phiên chơi (UC04)
 
 ```mermaid
 flowchart TD
-    A([Bắt đầu]) --> B[Admin click máy trống]
-    B --> C{Hiển thị dialog\nbắt đầu phiên}
-    C --> D[Chọn khách hàng\nhoặc nhập tên]
-    D --> E[Nhấn Bắt Đầu]
-    E --> F[Tạo PhienSuDung mới\ngioBatDau = now]
-    F --> G[Cập nhật máy:\ntrạng thái = Đang dùng]
-    G --> H[Đồng hồ bắt đầu tính]
-    H --> I{Khách sử dụng máy}
-    I --> J[Admin click máy Đang dùng]
-    J --> K[Hiển thị thông tin phiên:\nthời gian, tiền máy, tiền DV]
-    K --> L{Admin chọn hành động}
-    L -->|Gọi Món| M[Mở dialog gọi món\nChọn món → Xác nhận]
-    M --> I
-    L -->|Kết Thúc| N[Tính tổng tiền =\ntiền máy + tiền DV]
-    N --> O{Khách thành viên?}
-    O -->|Có| P[Trừ tiền + Cộng giờ\n+ Cộng điểm]
-    O -->|Không| Q[Thông báo tổng tiền]
-    P --> Q
-    Q --> R[Máy → Trống]
-    R --> S([Kết thúc])
-    L -->|Bảo Trì| T[Máy → Bảo trì]
-    T --> S
+    Start([Bắt đầu]) --> ClickEmpty[Admin click máy Trống]
+    ClickEmpty --> LoadKH[Hệ thống load danh sách khách hàng]
+    LoadKH --> ShowDlg[Hiển thị dialog Bắt Đầu Phiên]
+    ShowDlg --> SelectKH[Admin chọn khách hàng hoặc nhập tên vãng lai]
+    SelectKH --> ClickStart[Nhấn Bắt Đầu]
+    ClickStart --> CreateSession[Tạo đối tượng PhienSuDung mới]
+    CreateSession --> DbInsert[INSERT vào bảng phien_su_dung]
+    DbInsert --> DbUpdate[UPDATE trạng thái máy sang Đang dùng]
+    DbUpdate --> RefreshGrid[Làm mới sơ đồ máy tính]
+    RefreshGrid --> Stop([Kết thúc])
 ```
 
-### Sequence Diagram — Đăng nhập
+#### 2. Luồng Gọi đồ ăn/uống (UC06)
+
+```mermaid
+flowchart TD
+    Start([Bắt đầu]) --> ClickActive[Admin click máy Đang dùng]
+    ClickActive --> ClickOrder[Nhấn Gọi Món]
+    ClickOrder --> LoadMenu[Hệ thống load menu dịch vụ còn hàng]
+    LoadMenu --> ShowMenu[Hiển thị bảng menu dịch vụ]
+    ShowMenu --> SelectItems[Admin chọn món ăn/uống & chỉnh số lượng]
+    SelectItems --> ClickConfirm[Nhấn Xác nhận đơn]
+    ClickConfirm --> CheckSelected{Có chọn món nào không?}
+    CheckSelected -->|Không| ErrorMsg[Hiển thị cảnh báo chưa chọn món]
+    ErrorMsg --> SelectItems
+    CheckSelected -->|Có| CreateOrder[Tạo DonHang & ChiTietDonHang]
+    CreateOrder --> DbInsert[INSERT đơn hàng & chi tiết vào CSDL]
+    DbInsert --> UpdateSession[Cập nhật tổng tiền dịch vụ của phiên chơi]
+    UpdateSession --> RefreshUI[Đóng dialog, thông báo thành công]
+    RefreshUI --> Stop([Kết thúc])
+```
+
+#### 3. Luồng Kết thúc phiên chơi & Thanh toán (UC05)
+
+```mermaid
+flowchart TD
+    Start([Bắt đầu]) --> ClickActive[Admin click máy Đang dùng]
+    ClickActive --> LoadSession[Hệ thống truy vấn phiên chơi của máy]
+    LoadSession --> CalcTime[Tính thời gian thực tế chơi & tiền máy]
+    CalcTime --> CalcService[Tính tổng tiền dịch vụ ăn uống]
+    CalcService --> ShowBill[Hiển thị dialog thanh toán hóa đơn chi tiết]
+    ShowBill --> SelectAction{Admin chọn hành động}
+    SelectAction -->|Bảo trì| UpdateBaoTri[UPDATE máy sang Bảo trì]
+    SelectAction -->|Kết thúc| DbUpdateSession[UPDATE phiên chơi: trạng thái Đã kết thúc]
+    
+    DbUpdateSession --> CheckKH{Khách thành viên?}
+    CheckKH -->|Không| ShowFinal[Hiển thị tổng tiền chơi cần thu mặt]
+    CheckKH -->|Có| CheckBalance{Tài khoản đủ tiền?}
+    
+    CheckBalance -->|Không| AlertBalance[Báo lỗi không đủ số dư]
+    AlertBalance --> ShowFinal
+    
+    CheckBalance -->|Có| DeductBalance[Trừ tiền tài khoản + Cộng giờ chơi + Cộng điểm]
+    DeductBalance --> DbUpdateKH[UPDATE số dư & điểm khách hàng vào CSDL]
+    DbUpdateKH --> ShowFinal
+    
+    ShowFinal --> DbUpdatePC[UPDATE trạng thái máy chơi sang Trống]
+    UpdateBaoTri --> DbUpdatePC
+    DbUpdatePC --> RefreshUI[Đóng dialog, làm mới sơ đồ máy]
+    RefreshUI --> Stop([Kết thúc])
+```
+
+#### 4. Luồng Đổi thưởng bằng điểm (UC09)
+
+```mermaid
+flowchart TD
+    Start([Bắt đầu]) --> SelectKH[Admin chọn khách hàng]
+    SelectKH --> ClickReward[Nhấn Đổi Thưởng]
+    ClickReward --> LoadRewards[Hệ thống tải danh sách món hỗ trợ đổi quà]
+    LoadRewards --> ShowDlg[Hiển thị dialog đổi quà & điểm hiện có của khách]
+    ShowDlg --> SelectGifts[Admin chọn quà & số lượng]
+    SelectGifts --> CalcPoints[Tính tổng điểm cần dùng]
+    CalcPoints --> ClickConfirm[Nhấn Đổi Thưởng]
+    ClickConfirm --> CheckPoints{Điểm hiện có >= Điểm cần đổi?}
+    CheckPoints -->|Không| AlertError[Hiển thị thông báo không đủ điểm]
+    AlertError --> SelectGifts
+    CheckPoints -->|Có| DbHistory[INSERT lịch sử đổi quà vào CSDL]
+    DbHistory --> DbUpdateKH[UPDATE trừ điểm tích lũy của khách hàng]
+    DbUpdateKH --> RefreshList[Làm mới danh sách khách hàng]
+    RefreshList --> Stop([Kết thúc])
+```
+
+---
+
+### 3.4.2. Biểu đồ tuần tự (Sequence Diagram)
+
+#### 1. Đăng nhập (UC01)
+Trình diễn tương tác tuần tự của quá trình kiểm tra tài khoản bảo mật và thiết lập giao diện làm việc chính.
 
 ```mermaid
 sequenceDiagram
-    participant Admin
-    participant GiaoDienDangNhap
-    participant DieuKhienDangNhap
-    participant KetNoiCSDL
-    participant GiaoDienChinh
+    actor Admin
+    participant G as GiaoDienDangNhap
+    participant C as DieuKhienDangNhap
+    participant K as KetNoiCSDL
+    participant H2 as H2 Database
+    participant M as GiaoDienChinh
 
-    Admin->>GiaoDienDangNhap: Nhập username, password
-    Admin->>GiaoDienDangNhap: Nhấn ĐĂNG NHẬP
-    GiaoDienDangNhap->>DieuKhienDangNhap: actionPerformed()
-    DieuKhienDangNhap->>DieuKhienDangNhap: Kiểm tra username == "admin" && password == "admin"
-    alt Đúng
-        DieuKhienDangNhap->>KetNoiCSDL: kiemTraKetNoi()
-        KetNoiCSDL-->>DieuKhienDangNhap: true
-        DieuKhienDangNhap->>GiaoDienDangNhap: setVisible(false)
-        DieuKhienDangNhap->>GiaoDienChinh: new GiaoDienChinh()
-        GiaoDienChinh-->>Admin: Hiển thị Dashboard
-    else Sai
-        DieuKhienDangNhap->>GiaoDienDangNhap: hienThongBao("Sai thông tin!")
+    Admin->>G: Nhập username, password
+    Admin->>G: Nhấn nút "ĐĂNG NHẬP"
+    G->>C: actionPerformed(ActionEvent)
+    C->>C: Kiểm tra logic (username == "admin" && password == "admin")
+    alt Sai thông tin đăng nhập
+        C-->>G: hienThongBao("Sai tài khoản hoặc mật khẩu!")
+        G-->>Admin: Hiển thị cảnh báo lỗi
+    else Thông tin đăng nhập đúng
+        C->>K: kiemTraKetNoi()
+        K->>H2: Mở kết nối kiểm tra
+        H2-->>K: Kết nối OK
+        K-->>C: true
+        C->>G: setVisible(false)
+        C->>G: dispose()
+        C->>M: new GiaoDienChinh()
+        M->>H2: Lấy dữ liệu Dashboard
+        H2-->>M: Trả về số liệu
+        M-->>Admin: Hiển thị giao diện chính (Dashboard panel)
     end
 ```
 
-### Sequence Diagram — Bắt đầu phiên sử dụng
+#### 2. Bắt đầu phiên chơi (UC04)
+Trình diễn luồng tuần tự lấy danh sách khách hàng, tạo phiên chơi và cập nhật trạng thái hoạt động của máy chơi lên cơ sở dữ liệu.
 
 ```mermaid
 sequenceDiagram
-    participant Admin
-    participant PanelMayTinh
-    participant PhienSuDungDAO
-    participant MayTinhDAO
-    participant KhachHangDAO
+    actor Admin
+    participant P as PanelMayTinh
+    participant KH as KhachHangDAO
+    participant PS as PhienSuDungDAO
+    participant MT as MayTinhDAO
+    participant H2 as H2 Database
 
-    Admin->>PanelMayTinh: Click máy Trống
-    PanelMayTinh->>KhachHangDAO: layTatCa()
-    KhachHangDAO-->>PanelMayTinh: Danh sách khách hàng
-    PanelMayTinh-->>Admin: Dialog "Bắt Đầu Phiên"
-    Admin->>PanelMayTinh: Chọn khách + Nhấn "Bắt Đầu"
-    PanelMayTinh->>PhienSuDungDAO: batDauPhien(PhienSuDung)
-    PhienSuDungDAO-->>PanelMayTinh: maPhien
-    PanelMayTinh->>MayTinhDAO: capNhatTrangThai(maMay, "Đang dùng")
-    PanelMayTinh->>PanelMayTinh: lamMoiMayTinh()
-    PanelMayTinh-->>Admin: Thông báo thành công
+    Admin->>P: Click vào card máy "Trống"
+    P->>KH: layTatCa()
+    KH->>H2: SELECT * FROM khach_hang
+    H2-->>KH: ResultSet danh sách khách hàng
+    KH-->>P: List<KhachHang>
+    P-->>Admin: Hiển thị dialog "Bắt đầu phiên"
+    Admin->>P: Chọn khách hàng (hoặc Khách vãng lai) & nhấn "Bắt Đầu"
+    P->>PS: batDauPhien(PhienSuDung)
+    PS->>H2: INSERT INTO phien_su_dung (ma_may, ten_khach, gio_bat_dau, ...)
+    H2-->>PS: Thực thi thành công
+    PS-->>P: true
+    P->>MT: capNhatTrangThai(maMay, "Đang dùng")
+    MT->>H2: UPDATE may_tinh SET trang_thai = 'Đang dùng' WHERE ma = maMay
+    H2-->>MT: Thực thi thành công
+    MT-->>P: true
+    P->>P: lamMoiMayTinh() (Load lại lưới máy)
+    P-->>Admin: Hiển thị máy chơi chuyển sang màu Đỏ
 ```
 
-### Class Diagram — Cấu trúc Entity
+#### 3. Gọi đồ ăn/uống (UC06)
+Mô tả tuần tự các bước đặt dịch vụ món ăn thức uống gắn với phiên chơi đang chạy trên máy tính.
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant D as DialogGiaoMon
+    participant DA as DoAnUongDAO
+    participant DH as DonHangDAO
+    participant H2 as H2 Database
+
+    Admin->>D: Click nút "Gọi Món" trên dialog phiên
+    D->>DA: layConHang()
+    DA->>H2: SELECT * FROM do_an_uong WHERE con_hang = true
+    H2-->>DA: ResultSet thực đơn ăn uống
+    DA-->>D: List<DoAnUong>
+    D-->>Admin: Hiển thị bảng danh mục đồ ăn uống
+    Admin->>D: Tick chọn các món, nhập số lượng & nhấn "Xác Nhận Đơn"
+    D->>DH: taoDonHang(DonHang)
+    DH->>H2: INSERT INTO don_hang (ma_phien, ma_may, tong_gia, ...)
+    H2-->>DH: Lấy ma_don_hang tự sinh
+    loop Với mỗi món được chọn
+        DH->>H2: INSERT INTO chi_tiet_don_hang (ma_don_hang, ma_do_an, so_luong, ...)
+    end
+    H2-->>DH: Lưu thành công chi tiết
+    DH-->>D: true
+    D-->>Admin: Hiển thị thông báo "Gọi món thành công!"
+```
+
+#### 4. Kết thúc phiên & Thanh toán (UC05)
+Tuần tự luồng xử lý tính tiền giờ, tiền dịch vụ, trừ tiền số dư tài khoản hội viên và trả máy về trạng thái trống.
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant D as DialogThanhToan
+    participant PS as PhienSuDungDAO
+    participant DH as DonHangDAO
+    participant KH as KhachHangDAO
+    participant MT as MayTinhDAO
+    participant H2 as H2 Database
+
+    Admin->>D: Click card máy "Đang dùng"
+    D->>PS: layPhienDangChayTheoMay(maMay)
+    PS->>H2: SELECT * FROM phien_su_dung WHERE ma_may = maMay AND trang_thai = 'Đang chạy'
+    H2-->>PS: ResultSet phiên sử dụng
+    PS-->>D: PhienSuDung
+    D->>DH: layTongTienDonHang(maPhien)
+    DH->>H2: SELECT SUM(tong_gia) FROM don_hang WHERE ma_phien = maPhien
+    H2-->>DH: Tổng tiền dịch vụ (tienDV)
+    DH-->>D: tienDV
+    D->>D: Tính tiền máy = soGio * giaMoiGio. Tính tổng cộng = tienMay + tienDV
+    D-->>Admin: Hiển thị chi tiết hóa đơn thanh toán
+    Admin->>D: Nhấn nút "⏹ Kết Thúc"
+    D->>PS: ketThucPhien(maPhien, tongTien)
+    PS->>H2: UPDATE phien_su_dung SET gio_ket_thuc = now(), tong_tien = tongTien, trang_thai = 'Đã kết thúc'
+    H2-->>PS: Thành công
+    alt Khách hàng là thành viên
+        D->>KH: truTienVaCongGioDiem(maKH, tongTien, soGio, diemDuocCong)
+        KH->>H2: UPDATE khach_hang SET so_du = so_du - tongTien, tong_gio = tong_gio + soGio, diem = diem + diemDuocCong WHERE ma = maKH
+        H2-->>KH: Thành công
+    end
+    D->>MT: capNhatTrangThai(maMay, "Trống")
+    MT->>H2: UPDATE may_tinh SET trang_thai = 'Trống' WHERE ma = maMay
+    H2-->>MT: Thành công
+    D->>D: lamMoiSodoMay()
+    D-->>Admin: Thông báo thanh toán thành công, máy chuyển sang màu Xanh
+```
+
+#### 5. Nạp tiền khách hàng (UC08)
+Mô tả tương tác tuần tự giữa Admin, giao diện, DAO lớp xử lý và CSDL để nạp tiền vào tài khoản hội viên.
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant D as DialogNapTien
+    participant KH as KhachHangDAO
+    participant H2 as H2 Database
+
+    Admin->>D: Chọn khách hàng & nhấn "Nạp Tiền"
+    D-->>Admin: Hiển thị form nạp tiền
+    Admin->>D: Nhập số tiền nạp & nhấn "Xác nhận nạp"
+    D->>KH: napTienVaCongGioDiem(maKH, soTien)
+    KH->>H2: UPDATE khach_hang SET so_du = so_du + soTien, tong_gio = tong_gio + (soTien/10000), diem = diem + (soTien/10000) WHERE ma = maKH
+    H2-->>KH: Thành công
+    KH-->>D: true
+    D-->>Admin: Thông báo "Nạp tiền thành công! Cộng thêm X giờ chơi và X điểm!"
+```
+
+#### 6. Đổi thưởng bằng điểm (UC09)
+Mô tả tuần tự luồng đổi điểm lấy quà, lưu lịch sử đổi quà và trừ điểm thành viên.
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant D as DialogDoiThuong
+    participant KH as KhachHangDAO
+    participant LS as LichSuDoiThuongDAO
+    participant H2 as H2 Database
+
+    Admin->>D: Chọn khách hàng & nhấn "Đổi Thưởng"
+    D-->>Admin: Hiển thị dialog điểm hiện có & danh mục quà tặng
+    Admin->>D: Chọn các phần quà và nhấn "Đổi Thưởng"
+    D->>D: Kiểm tra điểm tích lũy của khách hàng
+    alt Điểm tích lũy không đủ
+        D-->>Admin: hienThongBao("Không đủ điểm tích lũy!")
+    else Điểm tích lũy hợp lệ
+        loop Với mỗi món quà được chọn
+            D->>LS: ghiLichSu(maKH, maDoAn, soLuong, diemDoi)
+            LS->>H2: INSERT INTO lich_su_doi_thuong (ma_khach_hang, ma_do_an, so_luong, diem_doi, ngay_doi)
+            H2-->>LS: Thành công
+        end
+        D->>KH: truDiem(maKH, tongDiemDaDoi)
+        KH->>H2: UPDATE khach_hang SET diem = diem - tongDiemDaDoi WHERE ma = maKH
+        H2-->>KH: Thành công
+        KH-->>D: true
+        D-->>Admin: Thông báo "Đổi quà thành công! Đã trừ X điểm!"
+    end
+```
+
+---
+
+### 3.4.3. Biểu đồ lớp phân tích (Class Diagram)
+Biểu đồ lớp dưới đây thể hiện các thực thể dữ liệu (Entities) chính trong hệ thống và mối liên kết quan hệ logic giữa chúng.
 
 ```mermaid
 classDiagram
@@ -989,25 +1193,32 @@ classDiagram
         +tinhThanhTien() double
     }
 
-    MayTinh "1" --> "*" PhienSuDung : có nhiều phiên
-    KhachHang "1" --> "*" PhienSuDung : có nhiều phiên
-    PhienSuDung "1" --> "*" DonHang : có nhiều đơn
-    DonHang "1" --> "*" ChiTietDonHang : chứa nhiều món
+    class LichSuDoiThuong {
+        -int ma
+        -int maKhachHang
+        -int maDoAn
+        -String tenDoAn
+        -int soLuong
+        -int diemDoi
+        -Date ngayDoi
+    }
+
+    MayTinh "1" --> "*" PhienSuDung : ghi nhận
+    KhachHang "1" --> "*" PhienSuDung : sử dụng
+    PhienSuDung "1" --> "*" DonHang : gọi món
+    DonHang "1" --> "*" ChiTietDonHang : chi tiết
     DoAnUong "1" --> "*" ChiTietDonHang : thuộc về
+    KhachHang "1" --> "*" LichSuDoiThuong : thực hiện
+    DoAnUong "1" --> "*" LichSuDoiThuong : quy đổi
 ```
-
-## 3.5. Kết luận chương
-
-Chương 3 đã hoàn thành phân tích hệ thống CyberNet với:
-
-- **Khảo sát hiện trạng:** Xác định 6 vấn đề chính trong quản lý quán internet thủ công.
-- **12 yêu cầu chức năng** và **6 yêu cầu phi chức năng**.
-- **13 Use Case** với đặc tả chi tiết cho 5 UC quan trọng nhất.
-- **Biểu đồ UML:** Activity Diagram (quy trình phiên sử dụng), 2 Sequence Diagram (đăng nhập, bắt đầu phiên), Class Diagram (7 entity class).
 
 ---
 
-<div style="page-break-after: always;"></div>
+## 3.5. Kết luận chương
+Chương 3 đã tiến hành khảo sát chi tiết hiện trạng quy trình nghiệp vụ thủ công của quán internet, phân tích và đưa ra giải pháp số hóa toàn diện thông qua hệ thống **CyberNet**. 
+Thông qua mô hình ca sử dụng (Use Case Model), 13 chức năng và mối tương tác của Admin đã được phân rã rõ ràng qua các biểu đồ phân hệ và bảng đặc tả chi tiết.
+Đồng thời, hành vi động của hệ thống được làm rõ qua các biểu đồ hoạt động (Activity Diagrams) và biểu đồ tuần tự (Sequence Diagrams) cho 6 nghiệp vụ cốt lõi, cùng biểu đồ cấu trúc tĩnh Class Diagram. Đây là cơ sở dữ liệu phân tích vững chắc phục vụ cho việc thiết kế kiến trúc phần mềm, cơ sở dữ liệu và xây dựng giao diện chi tiết ở Chương tiếp theo.
+
 
 # CHƯƠNG 4. THIẾT KẾ HỆ THỐNG
 
